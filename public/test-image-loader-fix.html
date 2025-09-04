@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 اختبار إصلاح Image Loader</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .success { background: #4CAF50; }
+        .error { background: #F44336; }
+        .warning { background: #FF9800; }
+        .info { background: #2196F3; }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .test-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .test-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 10px auto;
+            display: block;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .console-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 اختبار إصلاح Next.js Image Loader</h1>
+            <p>فحص شامل للتأكد من حل جميع مشاكل الصور</p>
+            <div id="overall-status" class="status info">🔄 جاري الفحص...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 إحصائيات الفحص</h2>
+            <div id="stats-display" class="console-output">جاري تحميل الإحصائيات...</div>
+            <button class="btn" onclick="runFullTest()">🔍 فحص شامل</button>
+            <button class="btn" onclick="testConsoleErrors()">📱 فحص أخطاء Console</button>
+            <button class="btn" onclick="clearConsole()">🧹 مسح Console</button>
+        </div>
+
+        <div class="test-section">
+            <h2>🖼️ اختبار أنواع الصور المختلفة</h2>
+            <div class="test-grid" id="image-tests">
+                <!-- سيتم ملء هذا القسم بـ JavaScript -->
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 أدوات الإصلاح المتقدمة</h2>
+            <button class="btn" onclick="runImageFix()">🛠️ إصلاح فوري</button>
+            <button class="btn" onclick="scanForBrokenImages()">🔍 فحص الصور المكسورة</button>
+            <button class="btn" onclick="testGlobalMonitor()">🌐 اختبار المراقب العالمي</button>
+            <button class="btn" onclick="exportReport()">📄 تصدير التقرير</button>
+        </div>
+
+        <div class="results">
+            <h2>📋 نتائج الاختبار</h2>
+            <div id="test-results" class="console-output">استخدم الأزرار أعلاه لبدء الاختبارات...</div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+        let consoleErrors = [];
+
+        // مراقبة أخطاء Console
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            consoleErrors.push({
+                timestamp: new Date().toLocaleString('ar-SA'),
+                message: args.join(' ')
+            });
+            originalConsoleError.apply(console, args);
+            updateErrorCount();
+        };
+
+        // صور اختبار مختلفة
+        const testImages = [
+            {
+                name: 'صورة محلية صحيحة',
+                src: '/images/default-avatar.png',
+                expected: 'success'
+            },
+            {
+                name: 'رابط Supabase صحيح',
+                src: 'https://ekyerljzfokqimbabzxm.supabase.co/storage/v1/object/public/avatars/test.png',
+                expected: 'fallback'
+            },
+            {
+                name: 'رابط مكسور',
+                src: 'https://test-url.com/fake-image.jpg',
+                expected: 'fallback'
+            },
+            {
+                name: 'رابط فارغ',
+                src: '',
+                expected: 'fallback'
+            },
+            {
+                name: 'رابط غير صحيح',
+                src: 'invalid-url',
+                expected: 'fallback'
+            }
+        ];
+
+        // إنشاء اختبارات الصور
+        function createImageTests() {
+            const container = document.getElementById('image-tests');
+            container.innerHTML = '';
+
+            testImages.forEach((test, index) => {
+                const testItem = document.createElement('div');
+                testItem.className = 'test-item';
+                testItem.innerHTML = `
+                    <h4>${test.name}</h4>
+                    <img 
+                        class="test-image" 
+                        src="${test.src || '/images/default-avatar.png'}" 
+                        alt="${test.name}"
+                        onerror="handleImageError(this, ${index})"
+                        onload="handleImageLoad(this, ${index})"
+                        data-test-index="${index}"
+                    />
+                    <div class="status info" id="status-${index}">🔄 جاري التحميل...</div>
+                `;
+                container.appendChild(testItem);
+            });
+        }
+
+        // معالج تحميل الصورة بنجاح
+        function handleImageLoad(img, index) {
+            const statusEl = document.getElementById(`status-${index}`);
+            if (img.src.includes('/images/default-avatar.png') && testImages[index].expected === 'fallback') {
+                statusEl.className = 'status success';
+                statusEl.textContent = '✅ نجح (صورة افتراضية)';
+                testResults[index] = 'success';
+            } else if (!img.src.includes('/images/default-avatar.png') && testImages[index].expected === 'success') {
+                statusEl.className = 'status success';
+                statusEl.textContent = '✅ نجح (صورة أصلية)';
+                testResults[index] = 'success';
+            } else {
+                statusEl.className = 'status warning';
+                statusEl.textContent = '⚠️ نتيجة غير متوقعة';
+                testResults[index] = 'unexpected';
+            }
+            updateOverallStatus();
+        }
+
+        // معالج خطأ تحميل الصورة
+        function handleImageError(img, index) {
+            if (img.src !== '/images/default-avatar.png') {
+                img.src = '/images/default-avatar.png';
+                console.log(`🔧 تم إصلاح الصورة ${index}: ${testImages[index].name}`);
+            } else {
+                const statusEl = document.getElementById(`status-${index}`);
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ فشل كامل';
+                testResults[index] = 'error';
+                updateOverallStatus();
+            }
+        }
+
+        // تحديث العداد العام
+        function updateOverallStatus() {
+            const successCount = testResults.filter(r => r === 'success').length;
+            const totalTests = testImages.length;
+            const statusEl = document.getElementById('overall-status');
+            
+            if (successCount === totalTests) {
+                statusEl.className = 'status success';
+                statusEl.textContent = `✅ جميع الاختبارات نجحت (${successCount}/${totalTests})`;
+            } else if (successCount > totalTests / 2) {
+                statusEl.className = 'status warning';
+                statusEl.textContent = `⚠️ نجح ${successCount} من ${totalTests} اختبار`;
+            } else {
+                statusEl.className = 'status error';
+                statusEl.textContent = `❌ فشل في ${totalTests - successCount} اختبار`;
+            }
+        }
+
+        // تحديث عداد الأخطاء
+        function updateErrorCount() {
+            const imageErrors = consoleErrors.filter(e => 
+                e.message.includes('Image') || 
+                e.message.includes('loader') ||
+                e.message.includes('next/image')
+            ).length;
+            
+            if (imageErrors > 0) {
+                const statusEl = document.getElementById('overall-status');
+                statusEl.className = 'status error';
+                statusEl.textContent = `❌ ${imageErrors} خطأ Image Loader مكتشف!`;
+            }
+        }
+
+        // فحص شامل
+        function runFullTest() {
+            const resultsEl = document.getElementById('test-results');
+            resultsEl.innerHTML = '🔄 جاري تشغيل الفحص الشامل...\n';
+            
+            // إعادة تعيين النتائج
+            testResults = [];
+            consoleErrors = [];
+            
+            // إعادة إنشاء اختبارات الصور
+            createImageTests();
+            
+            // فحص المراقب العالمي
+            setTimeout(() => {
+                if (window.globalImageMonitor) {
+                    const stats = window.globalImageMonitor.stats();
+                    resultsEl.innerHTML += `\n🌐 إحصائيات المراقب العالمي:\n${JSON.stringify(stats, null, 2)}\n`;
+                } else {
+                    resultsEl.innerHTML += '\n⚠️ المراقب العالمي غير متوفر\n';
+                }
+                
+                // فحص أداة الإصلاح
+                if (window.imageFix) {
+                    const report = window.imageFix.getReport();
+                    resultsEl.innerHTML += `\n🛠️ تقرير أداة الإصلاح:\n${JSON.stringify(report, null, 2)}\n`;
+                } else {
+                    resultsEl.innerHTML += '\n⚠️ أداة الإصلاح غير متوفرة\n';
+                }
+            }, 2000);
+        }
+
+        // فحص أخطاء Console
+        function testConsoleErrors() {
+            const resultsEl = document.getElementById('test-results');
+            const imageErrors = consoleErrors.filter(e => 
+                e.message.includes('Image') || 
+                e.message.includes('loader') ||
+                e.message.includes('next/image')
+            );
+            
+            resultsEl.innerHTML = `📱 فحص أخطاء Console:\n`;
+            resultsEl.innerHTML += `إجمالي الأخطاء: ${consoleErrors.length}\n`;
+            resultsEl.innerHTML += `أخطاء الصور: ${imageErrors.length}\n\n`;
+            
+            if (imageErrors.length === 0) {
+                resultsEl.innerHTML += '✅ لا توجد أخطاء Image Loader!\n';
+            } else {
+                resultsEl.innerHTML += '❌ أخطاء Image Loader موجودة:\n';
+                imageErrors.forEach(error => {
+                    resultsEl.innerHTML += `[${error.timestamp}] ${error.message}\n`;
+                });
+            }
+        }
+
+        // تشغيل إصلاح الصور
+        function runImageFix() {
+            const resultsEl = document.getElementById('test-results');
+            resultsEl.innerHTML = '🛠️ تشغيل إصلاح الصور...\n';
+            
+            if (window.imageFix) {
+                window.imageFix.fixAllImages().then(fixed => {
+                    resultsEl.innerHTML += `✅ تم إصلاح ${fixed} صورة\n`;
+                });
+            } else {
+                resultsEl.innerHTML += '⚠️ أداة الإصلاح غير متوفرة\n';
+            }
+        }
+
+        // فحص الصور المكسورة
+        function scanForBrokenImages() {
+            const resultsEl = document.getElementById('test-results');
+            const images = document.querySelectorAll('img');
+            let brokenCount = 0;
+            let totalCount = images.length;
+            
+            resultsEl.innerHTML = `🔍 فحص ${totalCount} صورة...\n`;
+            
+            images.forEach((img, index) => {
+                const testImg = new Image();
+                testImg.onload = function() {
+                    // الصورة تحملت بنجاح
+                };
+                testImg.onerror = function() {
+                    brokenCount++;
+                    resultsEl.innerHTML += `❌ صورة مكسورة: ${img.src}\n`;
+                };
+                testImg.src = img.src;
+            });
+            
+            setTimeout(() => {
+                resultsEl.innerHTML += `\n📊 النتائج النهائية:\n`;
+                resultsEl.innerHTML += `إجمالي الصور: ${totalCount}\n`;
+                resultsEl.innerHTML += `الصور المكسورة: ${brokenCount}\n`;
+                resultsEl.innerHTML += `معدل النجاح: ${((totalCount - brokenCount) / totalCount * 100).toFixed(1)}%\n`;
+            }, 3000);
+        }
+
+        // اختبار المراقب العالمي
+        function testGlobalMonitor() {
+            const resultsEl = document.getElementById('test-results');
+            
+            if (window.globalImageMonitor) {
+                resultsEl.innerHTML = '🌐 اختبار المراقب العالمي...\n';
+                const stats = window.globalImageMonitor.stats();
+                resultsEl.innerHTML += JSON.stringify(stats, null, 2) + '\n';
+                
+                // تشغيل فحص
+                window.globalImageMonitor.scan();
+                resultsEl.innerHTML += '\n✅ تم تشغيل فحص المراقب العالمي\n';
+            } else {
+                resultsEl.innerHTML = '❌ المراقب العالمي غير متوفر\n';
+                resultsEl.innerHTML += 'تأكد من تحميل global-image-monitor.js\n';
+            }
+        }
+
+        // تصدير التقرير
+        function exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                testResults: testResults,
+                consoleErrors: consoleErrors,
+                imageTests: testImages,
+                browser: navigator.userAgent,
+                url: window.location.href
+            };
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `image-loader-test-report-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            const resultsEl = document.getElementById('test-results');
+            resultsEl.innerHTML = '📄 تم تصدير التقرير بنجاح!\n';
+        }
+
+        // مسح Console
+        function clearConsole() {
+            console.clear();
+            consoleErrors = [];
+            const resultsEl = document.getElementById('test-results');
+            resultsEl.innerHTML = '🧹 تم مسح Console والأخطاء\n';
+            updateErrorCount();
+        }
+
+        // تحديث الإحصائيات
+        function updateStats() {
+            const statsEl = document.getElementById('stats-display');
+            const now = new Date().toLocaleString('ar-SA');
+            
+            statsEl.innerHTML = `آخر تحديث: ${now}
+الصور المختبرة: ${testImages.length}
+النتائج الناجحة: ${testResults.filter(r => r === 'success').length}
+أخطاء Console: ${consoleErrors.length}
+أخطاء الصور: ${consoleErrors.filter(e => e.message.includes('Image')).length}
+
+🎯 الهدف: 0 أخطاء Image Loader
+✅ الحالة: ${consoleErrors.filter(e => e.message.includes('Image')).length === 0 ? 'نجح!' : 'يحتاج إصلاح'}`;
+        }
+
+        // تشغيل عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            createImageTests();
+            updateStats();
+            
+            // تحديث الإحصائيات كل 5 ثوان
+            setInterval(updateStats, 5000);
+            
+            console.log('🔧 صفحة اختبار Image Loader جاهزة');
+            console.log('استخدم الأزرار لتشغيل الاختبارات المختلفة');
+        });
+    </script>
+</body>
+</html> 

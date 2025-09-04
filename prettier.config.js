@@ -1,0 +1,25 @@
+// prettier.config.js
+module.exports = {
+    endOfLine: 'lf',
+    semi: false,
+    singleQuote: true,
+    tabWidth: 2,
+    trailingComma: 'es5',
+    importOrder: [
+      '^(react/(.*)$)|^(react$)',
+      '^(next/(.*)$)|^(next$)',
+      '<THIRD_PARTY_MODULES>',
+      '^@/types$',
+      '^@/config/(.*)$',
+      '^@/lib/(.*)$',
+      '^@/hooks/(.*)$',
+      '^@/components/ui/(.*)$',
+      '^@/components/(.*)$',
+      '^@/styles/(.*)$',
+      '^@/app/(.*)$',
+      '^[./]',
+    ],
+    importOrderSeparation: false,
+    importOrderSortSpecifiers: true,
+    plugins: ['prettier-plugin-tailwindcss'],
+  }

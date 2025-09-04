@@ -1,0 +1,35 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Agent Theme -->
+  <circle cx="100" cy="100" r="100" fill="url(#gradient1)"/>
+  
+  <!-- Agent Icon -->
+  <circle cx="100" cy="70" r="20" fill="white" opacity="0.95"/>
+  <path d="M75 140C75 120 85 110 100 110C115 110 125 120 125 140" fill="white" opacity="0.95"/>
+  
+  <!-- Phone -->
+  <rect x="110" y="75" width="12" height="18" fill="#f59e0b" opacity="0.9"/>
+  <rect x="112" y="77" width="8" height="14" fill="white" opacity="0.9"/>
+  <circle cx="116" y="85" r="1" fill="#f59e0b" opacity="0.9"/>
+  
+  <!-- Briefcase -->
+  <rect x="80" y="85" width="20" height="12" fill="white" opacity="0.9"/>
+  <rect x="85" y="80" width="10" height="5" fill="white" opacity="0.9"/>
+  
+  <!-- Decorative Elements -->
+  <circle cx="40" cy="60" r="6" fill="white" opacity="0.4"/>
+  <circle cx="160" cy="80" r="5" fill="white" opacity="0.4"/>
+  <circle cx="50" cy="150" r="4" fill="white" opacity="0.4"/>
+  <circle cx="150" cy="140" r="6" fill="white" opacity="0.4"/>
+  
+  <!-- Inner Glow -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="2" opacity="0.2"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#d97706;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b45309;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg> 

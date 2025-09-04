@@ -1,0 +1,13 @@
+Country Code,Country,Contact's Public Display Name,Phone Number,is My Contact,Saved Name,Group Name
++20,Egypt,Ahmed Mohamed,2 0128811,true,Ahmed,General Group
++20,Egypt,Sara Ahmed,+20 2 0128811,true,Sara,Test Group
++20,Egypt,Mohamed Ali,2020128811,false,Mohamed,VIP Group
++20,Egypt,Fatima Omar,0128811,true,Fatima,General Group
++966,Saudi Arabia,Ali Hassan,966123456789,false,Ali,Test Group
+
+
+
+
+
+
+

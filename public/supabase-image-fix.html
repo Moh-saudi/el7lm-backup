@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح صور Supabase</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        h1 {
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        .status {
+            font-size: 1.2em;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #3b82f6;
+        }
+        .success {
+            background: #dcfce7;
+            border-color: #16a34a;
+            color: #166534;
+        }
+        .error {
+            background: #fef2f2;
+            border-color: #dc2626;
+            color: #7f1d1d;
+        }
+        .warning {
+            background: #fefce8;
+            border-color: #ca8a04;
+            color: #854d0e;
+        }
+        .progress {
+            width: 100%;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #16a34a);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #3b82f6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            color: #64748b;
+            font-weight: 500;
+        }
+        button {
+            background: linear-gradient(45deg, #3b82f6, #1e40af);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59,130,246,0.4);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .console {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            height: 250px;
+            overflow-y: auto;
+            margin-top: 20px;
+            text-align: right;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: right;
+        }
+        .info-box h4 {
+            color: #1e40af;
+            margin: 0 0 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 إصلاح صور Supabase</h1>
+        
+        <div class="info-box">
+            <h4>📋 ما سيتم إصلاحه:</h4>
+            <p>• روابط test-url.com الوهمية<br>
+            • صور Supabase المكسورة أو المفقودة<br>
+            • روابط تحتوي على undefined أو null</p>
+        </div>
+        
+        <div id="status" class="status">
+            🔄 جاري التحضير...
+        </div>
+        
+        <div class="progress">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        
+        <div id="stats" class="stats" style="display: none;">
+            <div class="stat-card">
+                <div id="total-checked" class="stat-number">0</div>
+                <div class="stat-label">إجمالي البيانات</div>
+            </div>
+            <div class="stat-card">
+                <div id="broken-found" class="stat-number">0</div>
+                <div class="stat-label">صور مكسورة</div>
+            </div>
+            <div class="stat-card">
+                <div id="fixed-count" class="stat-number">0</div>
+                <div class="stat-label">تم إصلاحها</div>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <button id="scan-btn" onclick="scanForBrokenImages()">🔍 فحص الصور</button>
+            <button id="fix-btn" onclick="fixBrokenImages()" disabled>🛠️ إصلاح الصور</button>
+            <button onclick="window.location.reload()">🔄 إعادة فحص</button>
+        </div>
+        
+        <div id="console" class="console">
+            جاري تحميل أدوات Supabase...
+        </div>
+    </div>
+
+    <script type="module">
+        // إعدادات Supabase
+        const SUPABASE_URL = 'https://ekyerljzfokqimbabzxm.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreWVybGp6Zm9rcWltYmFienhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NTcyODMsImV4cCI6MjA2MjIzMzI4M30.Xd6Cg8QUISHyCG-qbgo9HtWUZz6tvqAqG6KKXzuetBY';
+        
+        const statusEl = document.getElementById('status');
+        const progressBar = document.getElementById('progress-bar');
+        const statsEl = document.getElementById('stats');
+        const consoleEl = document.getElementById('console');
+        const scanBtn = document.getElementById('scan-btn');
+        const fixBtn = document.getElementById('fix-btn');
+        
+        let supabase = null;
+        let brokenData = [];
+        
+        function updateConsole(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('ar-SA');
+            const colors = {
+                info: '#e2e8f0',
+                success: '#4ade80',
+                error: '#f87171',
+                warning: '#fbbf24'
+            };
+            
+            consoleEl.innerHTML += `<div style="color: ${colors[type]}; margin: 3px 0;">
+                [${timestamp}] ${message}
+            </div>`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+        
+        function updateProgress(percent) {
+            progressBar.style.width = percent + '%';
+        }
+        
+        function updateStats(stats) {
+            document.getElementById('total-checked').textContent = stats.totalChecked || 0;
+            document.getElementById('broken-found').textContent = stats.brokenFound || 0;
+            document.getElementById('fixed-count').textContent = stats.fixedCount || 0;
+            statsEl.style.display = 'grid';
+        }
+        
+        function showStatus(message, type = 'status') {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+        
+        // تحميل Supabase
+        async function initSupabase() {
+            try {
+                updateConsole('📱 تحميل Supabase Client...');
+                
+                const { createClient } = await import('https://cdn.skypack.dev/@supabase/supabase-js@2');
+                supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                updateProgress(50);
+                updateConsole('✅ تم تحميل Supabase بنجاح', 'success');
+                
+                showStatus('✅ النظام جاهز للاستخدام', 'success');
+                updateProgress(100);
+                scanBtn.disabled = false;
+                
+                updateConsole('🎯 اضغط "فحص الصور" للبدء');
+                
+            } catch (error) {
+                updateConsole(`❌ خطأ في تحميل Supabase: ${error.message}`, 'error');
+                showStatus('❌ فشل في تحميل النظام', 'error');
+            }
+        }
+        
+        // فحص الصور المكسورة
+        window.scanForBrokenImages = async function() {
+            if (!supabase) {
+                showStatus('❌ Supabase غير جاهز', 'error');
+                return;
+            }
+            
+            scanBtn.disabled = true;
+            showStatus('🔍 جاري فحص البيانات...', 'warning');
+            updateProgress(10);
+            
+            try {
+                updateConsole('🔍 فحص جدول اللاعبين...');
+                
+                // استعلام البيانات من Supabase
+                const { data: players, error } = await supabase
+                    .from('players')
+                    .select('id, full_name, profile_image_url, profile_image, avatar_url');
+                
+                if (error) {
+                    throw new Error(`خطأ في قاعدة البيانات: ${error.message}`);
+                }
+                
+                updateProgress(30);
+                updateConsole(`📊 تم العثور على ${players.length} لاعب`);
+                
+                brokenData = [];
+                let totalChecked = 0;
+                
+                for (const player of players) {
+                    totalChecked++;
+                    let hasBrokenImages = false;
+                    const brokenFields = [];
+                    
+                    // فحص profile_image_url
+                    if (player.profile_image_url && isBrokenUrl(player.profile_image_url)) {
+                        brokenFields.push('profile_image_url');
+                        hasBrokenImages = true;
+                    }
+                    
+                    // فحص profile_image
+                    if (player.profile_image && isBrokenUrl(player.profile_image)) {
+                        brokenFields.push('profile_image');
+                        hasBrokenImages = true;
+                    }
+                    
+                    // فحص avatar_url
+                    if (player.avatar_url && isBrokenUrl(player.avatar_url)) {
+                        brokenFields.push('avatar_url');
+                        hasBrokenImages = true;
+                    }
+                    
+                    if (hasBrokenImages) {
+                        brokenData.push({
+                            id: player.id,
+                            name: player.full_name || 'لاعب مجهول',
+                            brokenFields: brokenFields
+                        });
+                        updateConsole(`⚠️ ${player.full_name || player.id}: ${brokenFields.join(', ')}`, 'warning');
+                    }
+                }
+                
+                updateProgress(100);
+                
+                const stats = {
+                    totalChecked: totalChecked,
+                    brokenFound: brokenData.length,
+                    fixedCount: 0
+                };
+                
+                updateStats(stats);
+                
+                if (brokenData.length > 0) {
+                    showStatus(`🔍 تم العثور على ${brokenData.length} صورة مكسورة`, 'warning');
+                    updateConsole(`📋 العثور على ${brokenData.length} صورة تحتاج إصلاح`, 'warning');
+                    fixBtn.disabled = false;
+                } else {
+                    showStatus('✅ جميع الصور سليمة!', 'success');
+                    updateConsole('🎉 لا توجد صور مكسورة!', 'success');
+                }
+                
+            } catch (error) {
+                updateConsole(`❌ خطأ في الفحص: ${error.message}`, 'error');
+                showStatus('❌ فشل في الفحص', 'error');
+            }
+            
+            scanBtn.disabled = false;
+        };
+        
+        // إصلاح الصور المكسورة
+        window.fixBrokenImages = async function() {
+            if (!supabase || brokenData.length === 0) {
+                showStatus('❌ لا توجد بيانات للإصلاح', 'error');
+                return;
+            }
+            
+            fixBtn.disabled = true;
+            showStatus('🛠️ جاري إصلاح الصور...', 'warning');
+            updateProgress(0);
+            
+            try {
+                let fixedCount = 0;
+                const total = brokenData.length;
+                
+                for (let i = 0; i < total; i++) {
+                    const item = brokenData[i];
+                    updateProgress((i / total) * 100);
+                    
+                    const updates = {};
+                    
+                    // إصلاح الحقول المكسورة
+                    item.brokenFields.forEach(field => {
+                        updates[field] = '/images/default-avatar.png';
+                    });
+                    
+                    // تحديث قاعدة البيانات
+                    const { error } = await supabase
+                        .from('players')
+                        .update(updates)
+                        .eq('id', item.id);
+                    
+                    if (error) {
+                        updateConsole(`❌ فشل إصلاح ${item.name}: ${error.message}`, 'error');
+                    } else {
+                        fixedCount++;
+                        updateConsole(`✅ تم إصلاح: ${item.name}`, 'success');
+                    }
+                }
+                
+                updateProgress(100);
+                
+                const finalStats = {
+                    totalChecked: document.getElementById('total-checked').textContent,
+                    brokenFound: brokenData.length,
+                    fixedCount: fixedCount
+                };
+                
+                updateStats(finalStats);
+                
+                if (fixedCount > 0) {
+                    showStatus(`🎉 تم إصلاح ${fixedCount} صورة بنجاح!`, 'success');
+                    updateConsole(`🎉 تم إصلاح ${fixedCount} من ${total} صورة!`, 'success');
+                    updateConsole('💡 أعد تشغيل الخادم لرؤية النتائج', 'info');
+                    
+                    // إعادة تحميل الصفحة بعد 3 ثواني
+                    setTimeout(() => {
+                        updateConsole('🔄 إعادة تحميل الصفحة...');
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    showStatus('⚠️ لم يتم إصلاح أي صورة', 'warning');
+                }
+                
+            } catch (error) {
+                updateConsole(`❌ خطأ في الإصلاح: ${error.message}`, 'error');
+                showStatus('❌ فشل في الإصلاح', 'error');
+            }
+            
+            fixBtn.disabled = false;
+        };
+        
+        // فحص إذا كان الرابط مكسور
+        function isBrokenUrl(url) {
+            if (!url || typeof url !== 'string') return true;
+            
+            const cleanUrl = url.trim();
+            
+            // فحص الروابط الوهمية
+            const invalidPatterns = [
+                'test-url.com',
+                'example.com',
+                'placeholder.com',
+                'undefined',
+                'null',
+                '[object Object]'
+            ];
+            
+            if (invalidPatterns.some(pattern => cleanUrl.includes(pattern))) {
+                return true;
+            }
+            
+            // فحص روابط Supabase المكسورة
+            if (cleanUrl.includes('supabase.co') && cleanUrl.includes('/storage/')) {
+                if (cleanUrl.includes('/undefined/') || 
+                    cleanUrl.includes('/null/') ||
+                    cleanUrl.includes('profile.undefined') ||
+                    cleanUrl.includes('profile.null')) {
+                    return true;
+                }
+            }
+            
+            return cleanUrl === '' || cleanUrl === 'undefined' || cleanUrl === 'null';
+        }
+        
+        // بدء التحميل
+        initSupabase();
+        
+        updateConsole('🚀 مرحباً بك في أداة إصلاح صور Supabase!', 'success');
+        updateConsole('📋 هذه الأداة ستساعدك في تنظيف الصور المكسورة');
+    </script>
+</body>
+</html> 

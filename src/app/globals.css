@@ -1,0 +1,1442 @@
+/* ==============================================
+   HAGZZ GO - Main Styles (Optimized & Clean)
+   ============================================== */
+
+/* Responsive Design Improvements */
+@media (max-width: 768px) {
+  /* Touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* تحسين المسافات */
+  .mobile-spacing {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+  
+  /* تحسين النصوص */
+  .mobile-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  /* تحسين الأزرار */
+  .mobile-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+  }
+  
+  /* تحسين Swiper */
+  .swiper-pagination-bullet {
+    width: 8px !important;
+    height: 8px !important;
+  }
+  
+  /* تحسين Navigation */
+  .swiper-button-next,
+  .swiper-button-prev {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+/* تحسينات للتابلت */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tablet-spacing {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .tablet-text {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+}
+
+/* تحسينات للديسكتوب */
+@media (min-width: 1025px) {
+  .desktop-spacing {
+    padding: 2rem;
+    margin: 1.5rem;
+  }
+  
+  .desktop-text {
+    font-size: 1.125rem;
+    line-height: 1.7;
+  }
+}
+
+/* Cairo Font System for Arabic */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Inter Font System for English */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Font loading optimization */
+@font-face {
+  font-family: 'Cairo';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  src: local('Cairo'), url('https://fonts.gstatic.com/s/cairo/v20/SLXVc1nY6HkvangtZmpcWmhzfH5lWWgcQyyS4J0.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  src: local('Inter'), url('https://fonts.gstatic.com/s/inter/v12/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2') format('woff2');
+}
+
+html, body, * {
+  font-family: 'Cairo', sans-serif !important;
+}
+[lang="en"] {
+  font-family: 'Inter', Arial, sans-serif !important;
+}
+[lang="ar"] {
+  font-family: 'Cairo', sans-serif !important;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==============================================
+   1. BASE STYLES & FONT SYSTEM
+   ============================================== */
+
+@layer base {
+  html {
+    font-family: var(--font-cairo), 'Cairo', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    /* سيتم تعيين الاتجاه ديناميكياً حسب اللغة */
+  }
+  
+  body {
+    font-family: var(--font-cairo), 'Cairo', ui-sans-serif, system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    /* سيتم تعيين الاتجاه ديناميكياً حسب اللغة */
+  }
+  
+  * {
+    font-family: var(--font-cairo), 'Cairo', sans-serif;
+  }
+  
+  /* دعم الاتجاهات المختلفة */
+  html[dir="rtl"] {
+    direction: rtl;
+  }
+  
+  html[dir="ltr"] {
+    direction: ltr;
+  }
+  
+  /* تخصيص العناصر حسب الاتجاه */
+  html[dir="rtl"] body {
+    direction: rtl;
+    text-align: right;
+  }
+  
+  html[dir="ltr"] body {
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* Language-specific font classes */
+  .font-arabic {
+    font-family: var(--font-cairo), 'Cairo', sans-serif;
+  }
+  
+  .font-english {
+    font-family: var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+  
+  /* Auto font switching based on language */
+  [lang="ar"] {
+    font-family: var(--font-cairo), 'Cairo', sans-serif;
+  }
+  
+  [lang="en"] {
+    font-family: var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* Font loading states */
+  .fonts-loaded {
+    font-display: swap;
+  }
+
+  /* Fallback fonts for better loading */
+  .font-fallback {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  /* Font loading optimization */
+  .font-loading {
+    font-display: block;
+  }
+
+  .font-loaded {
+    font-display: swap;
+  }
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+/* ==============================================
+   2. CSS VARIABLES & THEME
+   ============================================== */
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 255, 255, 255;
+  --primary: #6d28d9;
+  --secondary: #db2777;
+  --accent: #14b8a6;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --font-cairo: 'Cairo', sans-serif;
+  --font-inter: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #8b5cf6;
+    --secondary: #ec4899;
+    --accent: #2dd4bf;
+  }
+}
+
+/* ==============================================
+   3. ESSENTIAL ANIMATIONS
+   ============================================== */
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loading-bar {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fade-in { animation: fade-in 0.6s ease-out forwards; }
+.animate-loading-bar { animation: loading-bar 2s ease-in-out infinite; }
+
+/* ==============================================
+   4. FONT LOADING OPTIMIZATIONS
+   ============================================== */
+
+/* Font loading indicator */
+.font-loading {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-display: swap;
+  opacity: 0.7;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Font loaded state */
+.fonts-loaded {
+  font-display: swap;
+  font-synthesis: none;
+  opacity: 1;
+}
+
+/* Font fallback for better performance */
+.font-fallback {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-display: swap;
+}
+
+/* Font loading states */
+.fonts-loading {
+  opacity: 0.7;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.fonts-loaded {
+  opacity: 1;
+}
+
+/* ==============================================
+   5. RESPONSIVE DESIGN
+   ============================================== */
+
+/* Mobile First Responsive Design */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+  
+  /* Mobile-specific styles */
+  .mobile-hidden {
+    display: none !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 1rem !important;
+  }
+  
+  /* Mobile sidebar adjustments */
+  .sidebar-mobile {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    z-index: 50 !important;
+    transform: translateX(100%) !important;
+    transition: transform 0.3s ease-in-out !important;
+  }
+  
+  .sidebar-mobile.open {
+    transform: translateX(0) !important;
+  }
+  
+  /* Mobile content adjustments */
+  .content-mobile {
+    margin-right: 0 !important;
+    width: 100% !important;
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+  
+  /* Tablet-specific styles */
+  .tablet-hidden {
+    display: none !important;
+  }
+  
+  /* Tablet sidebar adjustments */
+  .sidebar-tablet {
+    width: 64px !important;
+  }
+  
+  .sidebar-tablet.expanded {
+    width: 256px !important;
+  }
+  
+  /* Tablet content adjustments */
+  .content-tablet {
+    margin-right: 64px !important;
+  }
+  
+  .content-tablet.expanded {
+    margin-right: 256px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  /* Desktop tablet breakpoint */
+  .desktop-hidden {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Desktop styles */
+  .desktop-only {
+    display: block !important;
+  }
+  
+  .sidebar-desktop {
+    width: 280px !important;
+  }
+  
+  .sidebar-desktop.collapsed {
+    width: 80px !important;
+  }
+  
+  .content-desktop {
+    margin-right: 280px !important;
+  }
+  
+  .content-desktop.collapsed {
+    margin-right: 80px !important;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch-specific styles */
+  .touch-target {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 0.75rem !important;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .touch-spacing {
+    margin: 0.5rem 0 !important;
+  }
+}
+
+/* تحسين المسافات في الهيدر */
+.header button {
+  margin: 0 2px;
+}
+
+/* تحسين الفوتر للوجو */
+.footer {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* تحسين اللوجو في الفوتر */
+.footer .logo-section {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+/* تحسين المسافات بين الأزرار */
+.space-x-1 > * + * {
+  margin-left: 0.25rem;
+}
+
+.space-x-2 > * + * {
+  margin-left: 0.5rem;
+}
+
+.space-x-3 > * + * {
+  margin-left: 0.75rem;
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* High DPI optimizations */
+  .high-dpi {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* ==============================================
+   6. ACCESSIBILITY
+   ============================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==============================================
+   7. PRINT STYLES
+   ============================================== */
+
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  a, a:visited {
+    text-decoration: underline;
+  }
+  
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+}
+
+/* ==============================================
+   8. UTILITY CLASSES
+   ============================================== */
+
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-shadow-lg {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ==============================================
+   9. SCROLLBAR STYLING
+   ============================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ==============================================
+   10. FOCUS STYLES
+   ============================================== */
+
+*:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ==============================================
+   11. SELECTION STYLES
+   ============================================== */
+
+::selection {
+  background-color: var(--primary);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* ==============================================
+   12. COMPONENT UTILITIES
+   ============================================== */
+
+@layer utilities {
+  .btn-primary {
+    @apply px-6 py-3 text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all duration-500 ease-out transform hover:scale-[1.02];
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 text-blue-600 bg-white border-2 border-blue-600 rounded-xl hover:bg-blue-50 transition-all duration-500 ease-out;
+  }
+  
+  .card {
+    @apply p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-500 ease-out;
+  }
+  
+  .input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+  
+  .gradient-text {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800;
+  }
+  
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  /* أنماط دعم الترجمة */
+  .rtl {
+    direction: rtl;
+    text-align: right;
+  }
+  
+  .ltr {
+    direction: ltr;
+    text-align: left;
+  }
+  
+  /* تخصيص العناصر حسب الاتجاه */
+  .rtl .text-left {
+    text-align: right;
+  }
+  
+  .rtl .text-right {
+    text-align: left;
+  }
+  
+  .ltr .text-left {
+    text-align: left;
+  }
+  
+  .ltr .text-right {
+    text-align: right;
+  }
+  
+  /* أنماط مبدل اللغة */
+  .language-switcher {
+    @apply relative inline-block;
+  }
+  
+  .language-dropdown {
+    @apply absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-50;
+  }
+  
+  .language-option {
+    @apply w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors;
+  }
+  
+  .language-option.active {
+    @apply bg-blue-50 text-blue-600;
+  }
+
+  /* Font utilities for language switching */
+  .font-auto {
+    font-family: var(--font-cairo), 'Cairo', sans-serif;
+  }
+  
+  .font-auto[lang="en"] {
+    font-family: var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+  
+  .font-auto[lang="ar"] {
+    font-family: var(--font-cairo), 'Cairo', sans-serif;
+  }
+}
+
+/* ==============================================
+   13. VIDEO PLAYER OPTIMIZATIONS
+   ============================================== */
+
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+}
+
+.video-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    transparent 100%
+  );
+}
+
+.react-player {
+  pointer-events: none;
+}
+
+.react-player__youtube iframe,
+.react-player__vimeo iframe,
+.react-player__dailymotion iframe {
+  pointer-events: none !important;
+}
+
+/* Hide YouTube/Vimeo/Dailymotion overlays and controls */
+.ytp-endscreen-content,
+.ytp-ce-element,
+.ytp-cards-teaser,
+.ytp-chrome-bottom,
+.vp-overlay,
+.dmp-ui-controlbar {
+  display: none !important;
+}
+
+/* ==============================================
+   14. ERROR HANDLING & FALLBACKS
+   ============================================== */
+
+.development-error {
+  background: #fee;
+  color: #c00;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.loading-spinner {
+  @apply w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin;
+}
+
+/* ==============================================
+   15. LAYOUT COMPONENTS
+   ============================================== */
+
+.sidebar {
+  transition: width 0.3s ease;
+}
+
+.dashboard-card {
+  @apply bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow;
+}
+
+.profile-picture {
+  @apply w-16 h-16 rounded-full object-cover border-2 border-gray-200;
+}
+
+/* ==============================================
+   16. ERROR BOUNDARY STYLES
+   ============================================== */
+
+.error-boundary {
+  @apply min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-pink-50 to-red-50;
+}
+
+.error-content {
+  @apply max-w-md w-full text-center p-8;
+}
+
+.error-icon {
+  @apply w-24 h-24 bg-gradient-to-r from-red-400 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce;
+}
+
+.error-title {
+  @apply text-2xl font-bold text-gray-800 mb-3;
+}
+
+.error-message {
+  @apply text-gray-600 mb-6 leading-relaxed;
+}
+
+.error-actions {
+  @apply space-y-3;
+}
+
+/* ==============================================
+   END OF OPTIMIZED STYLES
+   ============================================== */
+
+/* ==============================================
+   RESPONSIVE DESIGN - MOBILE FIRST APPROACH
+   ============================================== */
+
+/* Base Mobile Styles (320px - 767px) */
+@media (max-width: 767px) {
+  /* Typography */
+  html {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 1.75rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  h3 {
+    font-size: 1.25rem !important;
+    line-height: 1.4 !important;
+  }
+  
+  p {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+  }
+  
+  /* Layout */
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* Cards */
+  .card, .bg-white {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Grid Systems */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  /* Buttons */
+  .btn, button {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Forms */
+  input, select, textarea {
+    padding: 0.75rem !important;
+    font-size: 1rem !important;
+    min-height: 44px !important;
+  }
+  
+  /* Navigation */
+  .nav-menu {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    z-index: 1000 !important;
+    transform: translateX(100%) !important;
+    transition: transform 0.3s ease-in-out !important;
+  }
+  
+  .nav-menu.open {
+    transform: translateX(0) !important;
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    z-index: 50 !important;
+    transform: translateX(100%) !important;
+    transition: transform 0.3s ease-in-out !important;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+  
+  /* Content */
+  .main-content {
+    margin-right: 0 !important;
+    width: 100% !important;
+    padding: 1rem !important;
+  }
+  
+  /* Tables */
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  table {
+    font-size: 0.75rem !important;
+  }
+  
+  /* Images */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Spacing */
+  .p-8 { padding: 1rem !important; }
+  .p-6 { padding: 0.75rem !important; }
+  .p-4 { padding: 0.5rem !important; }
+  
+  .m-8 { margin: 1rem !important; }
+  .m-6 { margin: 0.75rem !important; }
+  .m-4 { margin: 0.5rem !important; }
+  
+  /* Text sizes */
+  .text-4xl { font-size: 1.5rem !important; }
+  .text-3xl { font-size: 1.25rem !important; }
+  .text-2xl { font-size: 1.125rem !important; }
+  .text-xl { font-size: 1rem !important; }
+  
+  /* Hide desktop elements */
+  .desktop-only, .lg:block, .xl:block {
+    display: none !important;
+  }
+  
+  /* Show mobile elements */
+  .mobile-only {
+    display: block !important;
+  }
+  
+  /* Touch targets */
+  .touch-target {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Swiper adjustments */
+  .swiper {
+    height: 200px !important;
+  }
+  
+  .swiper-slide {
+    height: 200px !important;
+  }
+  
+  /* Responsive Layout Specific */
+  .responsive-layout {
+    overflow-x: hidden !important;
+  }
+  
+  .responsive-sidebar {
+    width: 320px !important;
+    transform: translateX(100%) !important;
+  }
+  
+  .responsive-sidebar.open {
+    transform: translateX(0) !important;
+  }
+  
+  .responsive-content {
+    margin-right: 0 !important;
+    width: 100% !important;
+    padding: 1rem !important;
+  }
+  
+  .responsive-header {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .responsive-footer {
+    padding: 1rem !important;
+  }
+}
+
+/* Tablet Styles (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  html {
+    font-size: 15px;
+  }
+  
+  .container {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+  
+  .grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.5rem !important;
+  }
+  
+  .sidebar {
+    width: 64px !important;
+  }
+  
+  .sidebar.expanded {
+    width: 256px !important;
+  }
+  
+  .main-content {
+    margin-right: 64px !important;
+  }
+  
+  .main-content.sidebar-expanded {
+    margin-right: 256px !important;
+  }
+  
+  /* Hide mobile elements */
+  .mobile-only {
+    display: none !important;
+  }
+  
+  /* Show tablet elements */
+  .tablet-only {
+    display: block !important;
+  }
+}
+
+/* Desktop Styles (1024px and up) */
+@media (min-width: 1024px) {
+  html {
+    font-size: 16px;
+  }
+  
+  .container {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+  
+  .grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 2rem !important;
+  }
+  
+  .sidebar {
+    width: 280px !important;
+  }
+  
+  .sidebar.collapsed {
+    width: 80px !important;
+  }
+  
+  .main-content {
+    margin-right: 280px !important;
+  }
+  
+  .main-content.sidebar-collapsed {
+    margin-right: 80px !important;
+  }
+  
+  /* Hide mobile/tablet elements */
+  .mobile-only, .tablet-only {
+    display: none !important;
+  }
+  
+  /* Show desktop elements */
+  .desktop-only {
+    display: block !important;
+  }
+}
+
+/* Large Desktop Styles (1440px and up) */
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1400px !important;
+  }
+  
+  .grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* ==============================================
+   SPECIFIC COMPONENT RESPONSIVE STYLES
+   ============================================== */
+
+/* Dashboard Cards */
+@media (max-width: 767px) {
+  .dashboard-card {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .dashboard-card .card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+  
+  .dashboard-card .card-content {
+    padding: 0.5rem 0 !important;
+  }
+}
+
+/* Forms */
+@media (max-width: 767px) {
+  .form-group {
+    margin-bottom: 1rem !important;
+  }
+  
+  .form-label {
+    font-size: 0.875rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  .form-input {
+    padding: 0.75rem !important;
+    font-size: 1rem !important;
+  }
+  
+  .form-button {
+    width: 100% !important;
+    padding: 0.875rem !important;
+    font-size: 1rem !important;
+  }
+}
+
+/* Tables */
+@media (max-width: 767px) {
+  .table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .table {
+    min-width: 600px !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.5rem 0.25rem !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* Navigation */
+@media (max-width: 767px) {
+  .nav-toggle {
+    display: block !important;
+  }
+  
+  .nav-menu {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    z-index: 1000 !important;
+    transform: translateX(100%) !important;
+    transition: transform 0.3s ease-in-out !important;
+  }
+  
+  .nav-menu.open {
+    transform: translateX(0) !important;
+  }
+  
+  .nav-menu .nav-item {
+    padding: 1rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .nav-menu .nav-link {
+    font-size: 1.125rem !important;
+    color: white !important;
+  }
+}
+
+/* Sidebar */
+@media (max-width: 767px) {
+  .sidebar-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 40 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: all 0.3s ease-in-out !important;
+  }
+  
+  .sidebar-overlay.open {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 320px !important;
+    height: 100vh !important;
+    z-index: 50 !important;
+    transform: translateX(100%) !important;
+    transition: transform 0.3s ease-in-out !important;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+}
+
+/* ==============================================
+   UTILITY CLASSES FOR RESPONSIVE DESIGN
+   ============================================== */
+
+/* Responsive visibility */
+.mobile-only { display: none; }
+.tablet-only { display: none; }
+.desktop-only { display: none; }
+
+@media (max-width: 767px) {
+  .mobile-only { display: block; }
+  .mobile-hidden { display: none !important; }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tablet-only { display: block; }
+  .tablet-hidden { display: none !important; }
+}
+
+@media (min-width: 1024px) {
+  .desktop-only { display: block; }
+  .desktop-hidden { display: none !important; }
+}
+
+/* Responsive spacing */
+@media (max-width: 767px) {
+  .mobile-p-0 { padding: 0 !important; }
+  .mobile-p-2 { padding: 0.5rem !important; }
+  .mobile-p-4 { padding: 1rem !important; }
+  .mobile-p-6 { padding: 1.5rem !important; }
+  
+  .mobile-m-0 { margin: 0 !important; }
+  .mobile-m-2 { margin: 0.5rem !important; }
+  .mobile-m-4 { margin: 1rem !important; }
+  .mobile-m-6 { margin: 1.5rem !important; }
+}
+
+/* Responsive text */
+@media (max-width: 767px) {
+  .mobile-text-xs { font-size: 0.75rem !important; }
+  .mobile-text-sm { font-size: 0.875rem !important; }
+  .mobile-text-base { font-size: 1rem !important; }
+  .mobile-text-lg { font-size: 1.125rem !important; }
+  .mobile-text-xl { font-size: 1.25rem !important; }
+  .mobile-text-2xl { font-size: 1.5rem !important; }
+}
+
+/* Responsive flex */
+@media (max-width: 767px) {
+  .mobile-flex-col { flex-direction: column !important; }
+  .mobile-flex-row { flex-direction: row !important; }
+  .mobile-items-start { align-items: flex-start !important; }
+  .mobile-items-center { align-items: center !important; }
+  .mobile-justify-start { justify-content: flex-start !important; }
+  .mobile-justify-center { justify-content: center !important; }
+}
+
+/* ==============================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ============================================== */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Touch-specific styles */
+  .touch-target {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  .touch-spacing {
+    margin: 0.5rem 0 !important;
+  }
+  
+  /* Larger touch targets for buttons */
+  button, .btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 0.75rem 1rem !important;
+  }
+  
+  /* Better touch feedback */
+  .touch-feedback:active {
+    transform: scale(0.95) !important;
+    transition: transform 0.1s ease-in-out !important;
+  }
+}
+
+/* ==============================================
+   HIGH DPI DISPLAYS
+   ============================================== */
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* High DPI optimizations */
+  .high-dpi {
+    image-rendering: -webkit-optimize-contrast !important;
+    image-rendering: crisp-edges !important;
+  }
+  
+  /* Sharper text */
+  body {
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+  }
+}
+
+/* ==============================================
+   ACCESSIBILITY IMPROVEMENTS
+   ============================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .card {
+    border: 2px solid !important;
+  }
+  
+  button {
+    border: 2px solid !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .auto-dark {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+  }
+}
+
+/* ==============================================
+   PRINT STYLES
+   ============================================== */
+
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  a, a:visited {
+    text-decoration: underline !important;
+  }
+  
+  a[href]:after {
+    content: " (" attr(href) ")" !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* YouTube Player Compatibility - Ignore deprecated -ms-high-contrast warnings */
+.youtube-player-container {
+  /* Force modern color mode */
+  forced-color-adjust: none;
+  /* Suppress -ms-high-contrast warnings */
+  -ms-high-contrast: none;
+}
+
+/* Hide YouTube related videos and suggestions */
+.youtube-player-container iframe {
+  /* Hide related videos overlay */
+  position: relative;
+  /* Suppress -ms-high-contrast warnings */
+  -ms-high-contrast: none;
+}
+
+/* Additional CSS to hide YouTube suggestions */
+.youtube-player-container iframe::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Hide YouTube end screen and related videos */
+.youtube-player-container .ytp-endscreen-content,
+.youtube-player-container .ytp-pause-overlay,
+.youtube-player-container .ytp-show-cards-title,
+.youtube-player-container .ytp-cards-button,
+.youtube-player-container .ytp-watermark {
+  display: none !important;
+}
+
+/* Global suppression of -ms-high-contrast warnings */
+* {
+  -ms-high-contrast: none;
+}
+
+/* Suppress deprecated -ms-high-contrast warnings */
+@media (forced-colors: active) {
+  .youtube-player-container {
+    forced-color-adjust: auto;
+  }
+}
+
+/* Legacy support for older browsers (suppress warnings) */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .youtube-player-container {
+    /* Suppress deprecated property warnings */
+  }
+}
+
+/* Modern forced colors mode */
+@media (forced-colors: active) {
+  .youtube-player-container iframe {
+    forced-color-adjust: none;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ==============================================
+   REACT-DAY-PICKER STYLES (REMOVED - NO LONGER NEEDED)
+   ============================================== */

@@ -1,0 +1,269 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح ربط اللاعب بالنادي</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        .button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        #console {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            height: 200px;
+            overflow-y: auto;
+            margin: 20px 0;
+            text-align: right;
+            font-size: 14px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .status.info { background: #e3f2fd; color: #1976d2; }
+        .status.success { background: #e8f5e8; color: #2e7d32; }
+        .status.warning { background: #fff3e0; color: #f57c00; }
+        .status.error { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>إصلاح ربط اللاعب بالنادي</h1>
+        <p>إصلاح ربط اللاعب "علي فراس" بـ "نادي أسوان العام"</p>
+        
+        <div id="status" class="status info">
+            جاري التحميل...
+        </div>
+        
+        <div>
+            <button id="checkBtn" class="button" onclick="runCheck()">فحص الحالة</button>
+            <button id="fixBtn" class="button" onclick="runFix()">تنفيذ الإصلاح</button>
+        </div>
+        
+        <div id="console"></div>
+        
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: right;">
+            <h4>التعليمات:</h4>
+            <ul style="text-align: right;">
+                <li>اضغط "فحص الحالة" للتحقق من وضع اللاعب</li>
+                <li>اضغط "تنفيذ الإصلاح" لربط اللاعب بالنادي</li>
+                <li>ستتم إعادة تحميل الصفحة تلقائياً بعد الإصلاح</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnx3eFcgJUzGEV5g6lqHPVlHSC6Ygk8Yg",
+            authDomain: "hagzz-72c68.firebaseapp.com",
+            projectId: "hagzz-72c68",
+            storageBucket: "hagzz-72c68.appspot.com",
+            messagingSenderId: "1060919113894",
+            appId: "1:1060919113894:web:b4e79e9c7f7b5a4a8b4b0a"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        
+        const consoleDiv = document.getElementById('console');
+        const statusDiv = document.getElementById('status');
+        const checkBtn = document.getElementById('checkBtn');
+        const fixBtn = document.getElementById('fixBtn');
+        
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, arguments);
+            const message = args.join(' ');
+            consoleDiv.innerHTML += '<div>' + new Date().toLocaleTimeString() + ' - ' + message + '</div>';
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        };
+        
+        function updateStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+        }
+        
+        async function runCheck() {
+            checkBtn.disabled = true;
+            updateStatus('جاري فحص الحالة...', 'warning');
+            
+            try {
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+                
+                if (!auth.currentUser) {
+                    throw new Error('يجب تسجيل الدخول أولاً');
+                }
+                
+                const playerId = 'hChYVnu04cXe3KK8JJQu';
+                const doc = await db.collection('players').doc(playerId).get();
+                
+                if (!doc.exists) {
+                    throw new Error('اللاعب غير موجود');
+                }
+                
+                const data = doc.data();
+                console.log('=== فحص الحالة ===');
+                console.log('الاسم: ' + data.full_name);
+                console.log('club_id: ' + (data.club_id || 'غير موجود'));
+                console.log('clubId: ' + (data.clubId || 'غير موجود'));
+                console.log('current_club: ' + (data.current_club || 'غير محدد'));
+                
+                if (!data.club_id && !data.clubId) {
+                    updateStatus('اللاعب يحتاج إلى إصلاح', 'warning');
+                    console.log('النتيجة: اللاعب يحتاج إلى إصلاح');
+                } else {
+                    updateStatus('اللاعب مرتبط بجهة بالفعل', 'success');
+                    console.log('النتيجة: اللاعب مرتبط بجهة');
+                }
+                
+            } catch (error) {
+                updateStatus('خطأ في الفحص: ' + error.message, 'error');
+                console.log('خطأ: ' + error.message);
+            } finally {
+                checkBtn.disabled = false;
+            }
+        }
+        
+        async function runFix() {
+            fixBtn.disabled = true;
+            updateStatus('جاري تنفيذ الإصلاح...', 'warning');
+            
+            try {
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+                
+                if (!auth.currentUser) {
+                    throw new Error('يجب تسجيل الدخول أولاً');
+                }
+                
+                console.log('=== بدء الإصلاح ===');
+                console.log('المستخدم: ' + auth.currentUser.uid);
+                
+                const playerId = 'hChYVnu04cXe3KK8JJQu';
+                const clubId = 'Nwr78w2YdYQhsKqHzPlCPGwGN2B3';
+                const clubName = 'نادي أسوان العام';
+                
+                const playerDoc = await db.collection('players').doc(playerId).get();
+                if (!playerDoc.exists) {
+                    throw new Error('اللاعب غير موجود');
+                }
+                
+                const playerData = playerDoc.data();
+                console.log('اللاعب موجود: ' + playerData.full_name);
+                
+                const confirmMessage = 'هل تريد ربط اللاعب "' + playerData.full_name + '" بـ "' + clubName + '"؟';
+                if (!confirm(confirmMessage)) {
+                    updateStatus('تم إلغاء العملية', 'info');
+                    return;
+                }
+                
+                const updateData = {
+                    club_id: clubId,
+                    clubId: clubId,
+                    current_club: clubName,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    fixed_club_link: true,
+                    fixed_at: new Date().toISOString(),
+                    fix_version: '2.0'
+                };
+                
+                console.log('تطبيق التحديث...');
+                
+                try {
+                    await db.collection('players').doc(playerId).update(updateData);
+                    console.log('تم التحديث بنجاح');
+                } catch (updateError) {
+                    if (updateError.code === 'permission-denied') {
+                        console.log('خطأ أذونات - محاولة بديلة...');
+                        await db.collection('players').doc(playerId).set(updateData, { merge: true });
+                        console.log('تم التحديث بالطريقة البديلة');
+                    } else {
+                        throw updateError;
+                    }
+                }
+                
+                const updatedDoc = await db.collection('players').doc(playerId).get();
+                const updatedData = updatedDoc.data();
+                
+                console.log('=== النتيجة النهائية ===');
+                console.log('club_id: ' + updatedData.club_id);
+                console.log('clubId: ' + updatedData.clubId);
+                console.log('current_club: ' + updatedData.current_club);
+                
+                updateStatus('تم الإصلاح بنجاح! جاري إعادة التحميل...', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard/player/reports?view=' + playerId;
+                }, 3000);
+                
+            } catch (error) {
+                updateStatus('فشل الإصلاح: ' + error.message, 'error');
+                console.log('خطأ: ' + error.message);
+            } finally {
+                fixBtn.disabled = false;
+            }
+        }
+        
+        window.addEventListener('load', () => {
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    updateStatus('جاهز للاستخدام', 'success');
+                    console.log('تم تسجيل الدخول: ' + user.uid);
+                    setTimeout(runCheck, 1000);
+                } else {
+                    updateStatus('يجب تسجيل الدخول أولاً', 'error');
+                    console.log('لم يتم تسجيل الدخول');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

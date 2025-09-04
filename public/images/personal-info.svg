@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Card background -->
+  <rect x="10" y="30" width="140" height="90" rx="16" fill="#2563EB"/>
+  <!-- User circle -->
+  <circle cx="50" cy="75" r="22" fill="#fff"/>
+  <!-- User head -->
+  <circle cx="50" cy="70" r="10" fill="#2563EB"/>
+  <!-- User body -->
+  <ellipse cx="50" cy="85" rx="12" ry="8" fill="#2563EB"/>
+  <!-- Lines for info -->
+  <rect x="80" y="55" width="50" height="8" rx="4" fill="#fff"/>
+  <rect x="80" y="72" width="40" height="7" rx="3.5" fill="#fff"/>
+  <rect x="80" y="87" width="30" height="7" rx="3.5" fill="#fff"/>
+  <!-- Card border -->
+  <rect x="10" y="30" width="140" height="90" rx="16" fill="none" stroke="#1e40af" stroke-width="3"/>
+</svg> 

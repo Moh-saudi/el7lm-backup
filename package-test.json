@@ -1,0 +1,23 @@
+{
+  "name": "video-upload-test",
+  "version": "1.0.0",
+  "description": "Test dependencies for video upload functionality",
+  "scripts": {
+    "test:video": "node scripts/test-video-upload.js",
+    "test:video:upload": "node -e \"require('./scripts/test-video-upload.js').testVideoUpload()\"",
+    "test:video:delete": "node -e \"require('./scripts/test-video-upload.js').testVideoDelete()\"",
+    "test:video:invalid": "node -e \"require('./scripts/test-video-upload.js').testInvalidFileTypes()\"",
+    "test:video:large": "node -e \"require('./scripts/test-video-upload.js').testLargeFile()\"",
+    "test:video:no-user": "node -e \"require('./scripts/test-video-upload.js').testWithoutUserId()\""
+  },
+  "dependencies": {
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 

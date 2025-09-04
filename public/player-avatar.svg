@@ -1,0 +1,31 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Football Theme -->
+  <circle cx="100" cy="100" r="100" fill="url(#gradient1)"/>
+  
+  <!-- Football Icon -->
+  <circle cx="100" cy="100" r="35" fill="white" opacity="0.95"/>
+  <path d="M85 85 L115 85 L115 115 L85 115 Z" fill="none" stroke="#1e40af" stroke-width="3"/>
+  <path d="M85 85 L115 115 M115 85 L85 115" stroke="#1e40af" stroke-width="2"/>
+  
+  <!-- Player Silhouette -->
+  <circle cx="100" cy="70" r="15" fill="white" opacity="0.9"/>
+  <path d="M75 140C75 120 85 110 100 110C115 110 125 120 125 140" fill="white" opacity="0.9"/>
+  
+  <!-- Decorative Elements -->
+  <circle cx="40" cy="60" r="6" fill="white" opacity="0.4"/>
+  <circle cx="160" cy="80" r="5" fill="white" opacity="0.4"/>
+  <circle cx="50" cy="150" r="4" fill="white" opacity="0.4"/>
+  <circle cx="150" cy="140" r="6" fill="white" opacity="0.4"/>
+  
+  <!-- Inner Glow -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="2" opacity="0.2"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e3a8a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg> 

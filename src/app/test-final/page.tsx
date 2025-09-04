@@ -1,0 +1,108 @@
+'use client';
+
+import React from 'react';
+import { 
+  Container, 
+  Title, 
+  Text, 
+  Card, 
+  Group, 
+  Button, 
+  Stack,
+  Grid,
+  Badge,
+  Box
+} from '@mantine/core';
+import { 
+  Trophy, 
+  Target, 
+  TrendingUp, 
+  Activity,
+  Plus,
+  Users,
+  Calendar,
+  BarChart3
+} from 'lucide-react';
+
+export default function TestFinalPage() {
+  const stats = [
+    { icon: Trophy, title: 'المباريات', value: '12', change: '+3', color: 'blue' },
+    { icon: Target, title: 'الأهداف', value: '8', change: '+2', color: 'green' },
+    { icon: TrendingUp, title: 'النقاط', value: '24', change: '+5', color: 'purple' },
+    { icon: Activity, title: 'النشاط', value: '95%', change: '+2%', color: 'yellow' },
+  ];
+
+  return (
+    <Box className="min-h-screen bg-gray-50 p-4">
+      <Container size="xl" className="py-8">
+        {/* العنوان */}
+        <Stack gap="lg" className="mb-8">
+          <Title order={1} className="text-gray-900 text-center">
+            صفحة اختبار نهائية
+          </Title>
+          <Text size="lg" className="text-gray-600 text-center">
+            صفحة اختبار للتأكد من عمل Mantine بشكل صحيح
+          </Text>
+        </Stack>
+
+        {/* الإحصائيات */}
+        <Grid className="mb-8">
+          {stats.map((stat, index) => (
+            <Grid.Col key={index} span={{ base: 12, sm: 6, lg: 3 }}>
+              <Card shadow="sm" padding="lg" radius="md" withBorder>
+                <Group justify="space-between" className="mb-4">
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-100">
+                    <stat.icon className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <Badge color={stat.color} variant="light">
+                    {stat.change}
+                  </Badge>
+                </Group>
+                <Text size="2xl" fw={700} className="text-gray-900 mb-1">
+                  {stat.value}
+                </Text>
+                <Text size="sm" className="text-gray-600">
+                  {stat.title}
+                </Text>
+              </Card>
+            </Grid.Col>
+          ))}
+        </Grid>
+
+        {/* أزرار الإجراءات */}
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Title order={3} className="mb-6 text-center">الإجراءات السريعة</Title>
+          <Group gap="md" justify="center">
+            <Button leftSection={<Users size={16} />} variant="light">
+              إدارة اللاعبين
+            </Button>
+            <Button leftSection={<Calendar size={16} />} variant="light">
+              جدول المباريات
+            </Button>
+            <Button leftSection={<BarChart3 size={16} />} variant="light">
+              عرض الإحصائيات
+            </Button>
+            <Button leftSection={<Plus size={16} />} color="blue">
+              إضافة مباراة جديدة
+            </Button>
+          </Group>
+        </Card>
+
+        {/* رسالة نجاح */}
+        <Card shadow="sm" padding="lg" radius="md" withBorder className="mt-8">
+          <Stack gap="md" className="text-center">
+            <Title order={2} className="text-green-600">
+              ✅ تم التحميل بنجاح!
+            </Title>
+            <Text size="lg" className="text-gray-600">
+              صفحة الاختبار تعمل بشكل مثالي مع Mantine
+            </Text>
+            <Text size="sm" className="text-gray-500">
+              جميع المكونات تعمل بشكل صحيح
+            </Text>
+          </Stack>
+        </Card>
+      </Container>
+    </Box>
+  );
+}

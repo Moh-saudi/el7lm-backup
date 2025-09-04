@@ -1,0 +1,6 @@
+ID,Name,Age,Grade,Address,Phone,Email,ParentName
+1,John Smith,15,10th,123 Main St,555-0101,john.smith@email.com,James Smith
+2,Emma Johnson,16,11th,456 Oak Ave,555-0102,emma.j@email.com,Sarah Johnson
+3,Michael Brown,14,9th,789 Pine Rd,555-0103,m.brown@email.com,Robert Brown
+4,Sophia Davis,15,10th,321 Elm St,555-0104,s.davis@email.com,Lisa Davis
+5,William Wilson,16,11th,654 Maple Dr,555-0105,w.wilson@email.com,Thomas Wilson 

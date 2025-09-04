@@ -1,0 +1,35 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Admin Theme -->
+  <circle cx="100" cy="100" r="100" fill="url(#gradient1)"/>
+  
+  <!-- Admin Icon -->
+  <circle cx="100" cy="70" r="20" fill="white" opacity="0.95"/>
+  <path d="M75 140C75 120 85 110 100 110C115 110 125 120 125 140" fill="white" opacity="0.95"/>
+  
+  <!-- Shield -->
+  <path d="M100 60 L120 70 L120 90 L100 100 L80 90 L80 70 Z" fill="white" opacity="0.9"/>
+  <path d="M100 65 L115 72 L115 87 L100 95 L85 87 L85 72 Z" fill="#ef4444" opacity="0.8"/>
+  
+  <!-- Key -->
+  <rect x="85" y="85" width="8" height="15" fill="#f59e0b" opacity="0.9"/>
+  <circle cx="89" y="90" r="2" fill="#f59e0b" opacity="0.9"/>
+  <circle cx="89" y="95" r="2" fill="#f59e0b" opacity="0.9"/>
+  
+  <!-- Decorative Elements -->
+  <circle cx="40" cy="60" r="6" fill="white" opacity="0.4"/>
+  <circle cx="160" cy="80" r="5" fill="white" opacity="0.4"/>
+  <circle cx="50" cy="150" r="4" fill="white" opacity="0.4"/>
+  <circle cx="150" cy="140" r="6" fill="white" opacity="0.4"/>
+  
+  <!-- Inner Glow -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="2" opacity="0.2"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b91c1c;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg> 

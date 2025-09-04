@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح أخطاء الصور</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .step {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
+        button {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.4);
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+        #console {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ إصلاح أخطاء الصور</h1>
+        
+        <div class="step">
+            <h3>📊 1. فحص الصور المكسورة</h3>
+            <p>فحص قاعدة البيانات للعثور على الصور الوهمية والمكسورة</p>
+            <button onclick="checkBrokenImages()">فحص الصور</button>
+        </div>
+
+        <div class="step">
+            <h3>🧹 2. تنظيف الصور الوهمية</h3>
+            <p>إزالة جميع روابط test-url.com واستبدالها بالصور الافتراضية</p>
+            <button onclick="cleanTestImages()">تنظيف الصور الوهمية</button>
+        </div>
+
+        <div class="step">
+            <h3>🔧 3. إصلاح صور Supabase</h3>
+            <p>فحص وإصلاح الصور المكسورة في Supabase</p>
+            <button onclick="fixSupabaseImages()">إصلاح Supabase</button>
+        </div>
+
+        <div class="step">
+            <h3>⚡ 4. إصلاح شامل</h3>
+            <p>تشغيل جميع عمليات الإصلاح معاً</p>
+            <button onclick="fullFix()">إصلاح شامل</button>
+        </div>
+
+        <div id="console"></div>
+    </div>
+
+    <script type="module">
+        const consoleEl = document.getElementById('console');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('ar-SA');
+            const colors = {
+                info: '#e2e8f0',
+                success: '#68d391', 
+                error: '#f56565',
+                warning: '#f6e05e'
+            };
+            
+            consoleEl.innerHTML += `<div style="color: ${colors[type]}; margin: 5px 0;">
+                [${timestamp}] ${message}
+            </div>`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        // فحص الصور المكسورة
+        window.checkBrokenImages = async () => {
+            log('🔍 بدء فحص الصور المكسورة...');
+            
+            try {
+                // استيراد Firebase
+                const { initializeApp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+                const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+                
+                // إعداد Firebase
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEMiAI",
+                    authDomain: "hagz-85b65.firebaseapp.com",
+                    projectId: "hagz-85b65",
+                    storageBucket: "hagz-85b65.appspot.com",
+                    messagingSenderId: "692767777581",
+                    appId: "1:692767777581:web:5b998ed1c834bc35b78b5f"
+                };
+                
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                
+                // فحص اللاعبين
+                const playersSnapshot = await getDocs(collection(db, 'players'));
+                let testUrls = 0;
+                let brokenSupabase = 0;
+                let totalPlayers = 0;
+
+                playersSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    totalPlayers++;
+                    
+                    const imageUrl = data.profile_image_url || data.profile_image || '';
+                    
+                    if (imageUrl.includes('test-url.com')) {
+                        testUrls++;
+                    }
+                    
+                    if (imageUrl.includes('supabase.co') && !imageUrl.includes('default')) {
+                        brokenSupabase++;
+                    }
+                });
+
+                log(`📊 تم فحص ${totalPlayers} لاعب`, 'info');
+                log(`🔗 صور وهمية (test-url): ${testUrls}`, testUrls > 0 ? 'warning' : 'success');
+                log(`💾 صور Supabase مشكوك فيها: ${brokenSupabase}`, brokenSupabase > 0 ? 'warning' : 'success');
+                
+                if (testUrls === 0 && brokenSupabase === 0) {
+                    log('✅ لا توجد مشاكل في الصور!', 'success');
+                } else {
+                    log('⚠️ يُنصح بتشغيل عملية الإصلاح', 'warning');
+                }
+
+            } catch (error) {
+                log(`❌ خطأ في الفحص: ${error.message}`, 'error');
+            }
+        };
+
+        // تنظيف الصور الوهمية
+        window.cleanTestImages = async () => {
+            log('🧹 بدء تنظيف الصور الوهمية...');
+            
+            try {
+                const { initializeApp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+                const { getFirestore, collection, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+                
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEMiAI",
+                    authDomain: "hagz-85b65.firebaseapp.com",
+                    projectId: "hagz-85b65",
+                    storageBucket: "hagz-85b65.appspot.com",
+                    messagingSenderId: "692767777581",
+                    appId: "1:692767777581:web:5b998ed1c834bc35b78b5f"
+                };
+                
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                
+                const playersSnapshot = await getDocs(collection(db, 'players'));
+                let cleaned = 0;
+
+                for (const docSnapshot of playersSnapshot.docs) {
+                    const data = docSnapshot.data();
+                    const imageUrl = data.profile_image_url || data.profile_image || '';
+                    
+                    if (imageUrl.includes('test-url.com')) {
+                        await updateDoc(doc(db, 'players', docSnapshot.id), {
+                            profile_image_url: '/images/default-avatar.png',
+                            profile_image: '/images/default-avatar.png'
+                        });
+                        cleaned++;
+                        log(`✅ تم تنظيف: ${data.full_name || docSnapshot.id}`, 'success');
+                    }
+                }
+
+                log(`🎉 تم تنظيف ${cleaned} صورة وهمية بنجاح!`, 'success');
+                
+            } catch (error) {
+                log(`❌ خطأ في التنظيف: ${error.message}`, 'error');
+            }
+        };
+
+        // إصلاح صور Supabase
+        window.fixSupabaseImages = async () => {
+            log('🔧 بدء إصلاح صور Supabase...');
+            
+            try {
+                const { initializeApp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+                const { getFirestore, collection, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+                
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEMiAI",
+                    authDomain: "hagz-85b65.firebaseapp.com",
+                    projectId: "hagz-85b65",
+                    storageBucket: "hagz-85b65.appspot.com",
+                    messagingSenderId: "692767777581",
+                    appId: "1:692767777581:web:5b998ed1c834bc35b78b5f"
+                };
+                
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                
+                const playersSnapshot = await getDocs(collection(db, 'players'));
+                let fixed = 0;
+
+                for (const docSnapshot of playersSnapshot.docs) {
+                    const data = docSnapshot.data();
+                    const imageUrl = data.profile_image_url || data.profile_image || '';
+                    
+                    if (imageUrl.includes('supabase.co') && !imageUrl.includes('default')) {
+                        // فحص إذا كان الرابط يعمل
+                        try {
+                            const response = await fetch(imageUrl, { method: 'HEAD' });
+                            if (!response.ok) {
+                                // استبدال بالصورة الافتراضية
+                                await updateDoc(doc(db, 'players', docSnapshot.id), {
+                                    profile_image_url: '/images/default-avatar.png',
+                                    profile_image: '/images/default-avatar.png'
+                                });
+                                fixed++;
+                                log(`🔧 تم إصلاح: ${data.full_name || docSnapshot.id}`, 'success');
+                            }
+                        } catch (error) {
+                            // إذا فشل الفحص، استبدل بالافتراضي
+                            await updateDoc(doc(db, 'players', docSnapshot.id), {
+                                profile_image_url: '/images/default-avatar.png',
+                                profile_image: '/images/default-avatar.png'
+                            });
+                            fixed++;
+                            log(`🔧 تم إصلاح (فشل الفحص): ${data.full_name || docSnapshot.id}`, 'success');
+                        }
+                    }
+                }
+
+                log(`🎉 تم إصلاح ${fixed} صورة في Supabase!`, 'success');
+                
+            } catch (error) {
+                log(`❌ خطأ في إصلاح Supabase: ${error.message}`, 'error');
+            }
+        };
+
+        // إصلاح شامل
+        window.fullFix = async () => {
+            log('🚀 بدء الإصلاح الشامل...', 'info');
+            
+            await checkBrokenImages();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await cleanTestImages();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await fixSupabaseImages();
+            
+            log('✅ تم إنهاء الإصلاح الشامل!', 'success');
+            log('💡 يُنصح بإعادة تشغيل التطبيق الآن', 'info');
+        };
+
+        // رسالة ترحيب
+        log('🛠️ أداة إصلاح أخطاء الصور جاهزة للاستخدام!', 'success');
+        log('💡 اختر العملية المناسبة من الأزرار أعلاه', 'info');
+    </script>
+</body>
+</html> 

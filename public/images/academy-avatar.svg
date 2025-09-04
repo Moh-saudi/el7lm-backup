@@ -1,0 +1,32 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Academy Theme -->
+  <circle cx="100" cy="100" r="100" fill="url(#gradient1)"/>
+  
+  <!-- Graduation Cap -->
+  <path d="M60 100 L140 100 L140 120 L60 120 Z" fill="white" opacity="0.95"/>
+  <path d="M70 100 L130 100 L130 110 L70 110 Z" fill="#8b5cf6" opacity="0.8"/>
+  <path d="M80 90 L120 90 L120 100 L80 100 Z" fill="white" opacity="0.95"/>
+  <path d="M85 90 L115 90 L115 95 L85 95 Z" fill="#8b5cf6" opacity="0.8"/>
+  
+  <!-- Tassel -->
+  <rect x="95" y="85" width="10" height="15" fill="#f59e0b"/>
+  <circle cx="100" cy="85" r="3" fill="#f59e0b"/>
+  
+  <!-- Decorative Elements -->
+  <circle cx="40" cy="60" r="6" fill="white" opacity="0.4"/>
+  <circle cx="160" cy="80" r="5" fill="white" opacity="0.4"/>
+  <circle cx="50" cy="150" r="4" fill="white" opacity="0.4"/>
+  <circle cx="150" cy="140" r="6" fill="white" opacity="0.4"/>
+  
+  <!-- Inner Glow -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="2" opacity="0.2"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#7c3aed;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6d28d9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg> 

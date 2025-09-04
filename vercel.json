@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "buildCommand": "next build",
+  "devCommand": "next dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+  },
+  "functions": {
+    "src/app/api/geidea/**/*.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/update-currency-rates/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/.well-known/apple-developer-merchantid-domain-association",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/update-currency-rates",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}

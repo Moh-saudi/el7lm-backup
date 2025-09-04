@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAGZZ GO - Project Structure Analysis with FoamTree</title>
+    <script src="https://get.carrotsearch.com/foamtree/demo/carrotsearch.foamtree.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .stats-bar {
+            background: #f8f9fa;
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .foamtree-container {
+            height: 800px;
+            position: relative;
+            background: #fafafa;
+        }
+        
+        .controls {
+            padding: 20px;
+            background: #f1f3f4;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-group label {
+            font-weight: 500;
+            color: #555;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        select {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-width: 300px;
+            font-size: 14px;
+            line-height: 1.5;
+            z-index: 1000;
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        
+        .tech-stack {
+            padding: 20px;
+            background: #e8f5e8;
+            text-align: center;
+        }
+        
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .tech-tag {
+            background: #27ae60;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 HAGZZ GO - تحليل هيكل المشروع</h1>
+            <p>منصة إدارة اللاعبين والأندية الرياضية الشاملة - تحليل تفاعلي بـ FoamTree</p>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number">150+</div>
+                <div class="stat-label">ملف مكون</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">60+</div>
+                <div class="stat-label">عملة مدعومة</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5</div>
+                <div class="stat-label">أنواع مستخدمين</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">3</div>
+                <div class="stat-label">بوابات دفع</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">12</div>
+                <div class="stat-label">لوحات تحكم</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>عرض:</label>
+                <select id="viewMode">
+                    <option value="overview">نظرة عامة</option>
+                    <option value="dashboards">لوحات التحكم</option>
+                    <option value="payments">أنظمة الدفع</option>
+                    <option value="admin">النظام الإداري</option>
+                    <option value="components">المكونات</option>
+                </select>
+            </div>
+            <button onclick="resetView()">إعادة تعيين العرض</button>
+            <button onclick="expandAll()">توسيع الكل</button>
+            <button onclick="collapseAll()">طي الكل</button>
+        </div>
+        
+        <div class="foamtree-container">
+            <div id="foamtree"></div>
+            
+            <div class="info-panel">
+                <h4>📊 تحليل المشروع</h4>
+                <p><strong>النوع:</strong> منصة رياضية شاملة</p>
+                <p><strong>التقنية:</strong> Next.js 15 + TypeScript</p>
+                <p><strong>قاعدة البيانات:</strong> Firebase + Supabase</p>
+                <p><strong>الدفع:</strong> Geidea + Apple Pay + SkipCash</p>
+                <p><strong>الواجهة:</strong> Tailwind CSS + Radix UI</p>
+                <p><strong>اللغات:</strong> عربي + إنجليزي</p>
+            </div>
+            
+            <div class="legend">
+                <h4>🎨 دليل الألوان</h4>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3498db;"></div>
+                    <span>صفحات التطبيق</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #27ae60;"></div>
+                    <span>المكونات</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f39c12;"></div>
+                    <span>API والخدمات</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e74c3c;"></div>
+                    <span>نظام الإدارة</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #9b59b6;"></div>
+                    <span>أنظمة الدفع</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tech-stack">
+            <h3>🛠️ التقنيات المستخدمة</h3>
+            <div class="tech-tags">
+                <span class="tech-tag">Next.js 15</span>
+                <span class="tech-tag">TypeScript</span>
+                <span class="tech-tag">Firebase</span>
+                <span class="tech-tag">Supabase</span>
+                <span class="tech-tag">Tailwind CSS</span>
+                <span class="tech-tag">Radix UI</span>
+                <span class="tech-tag">Geidea Payment</span>
+                <span class="tech-tag">Apple Pay</span>
+                <span class="tech-tag">SkipCash</span>
+                <span class="tech-tag">Framer Motion</span>
+                <span class="tech-tag">React Hook Form</span>
+                <span class="tech-tag">Recharts</span>
+                <span class="tech-tag">Swiper</span>
+                <span class="tech-tag">React Player</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات هيكل المشروع
+        const projectData = {
+            groups: [
+                {
+                    label: "📱 HAGZZ GO Platform",
+                    weight: 100,
+                    color: "#2c3e50",
+                    groups: [
+                        {
+                            label: "🏠 التطبيق الرئيسي (App Directory)",
+                            weight: 35,
+                            color: "#3498db",
+                            groups: [
+                                {
+                                    label: "🏛️ لوحات التحكم (Dashboards)",
+                                    weight: 15,
+                                    color: "#2980b9",
+                                    groups: [
+                                        { label: "🏃‍♂️ لوحة اللاعب", weight: 3, color: "#3498db" },
+                                        { label: "⚽ لوحة النادي", weight: 3, color: "#3498db" },
+                                        { label: "🏫 لوحة الأكاديمية", weight: 3, color: "#3498db" },
+                                        { label: "🤝 لوحة الوكيل", weight: 2, color: "#3498db" },
+                                        { label: "👨‍🏫 لوحة المدرب", weight: 2, color: "#3498db" },
+                                        { label: "👑 النظام الإداري", weight: 4, color: "#e74c3c" }
+                                    ]
+                                },
+                                {
+                                    label: "🔐 نظام المصادقة",
+                                    weight: 4,
+                                    color: "#f39c12",
+                                    groups: [
+                                        { label: "تسجيل الدخول", weight: 2, color: "#f39c12" },
+                                        { label: "إنشاء حساب", weight: 2, color: "#f39c12" }
+                                    ]
+                                },
+                                {
+                                    label: "🌐 الصفحات العامة",
+                                    weight: 6,
+                                    color: "#27ae60",
+                                    groups: [
+                                        { label: "الصفحة الرئيسية", weight: 2, color: "#27ae60" },
+                                        { label: "حول المنصة", weight: 1, color: "#27ae60" },
+                                        { label: "اتصل بنا", weight: 1, color: "#27ae60" },
+                                        { label: "سياسة الخصوصية", weight: 1, color: "#27ae60" },
+                                        { label: "الفيديوهات", weight: 1, color: "#27ae60" }
+                                    ]
+                                },
+                                {
+                                    label: "💳 نظام الدفع",
+                                    weight: 8,
+                                    color: "#9b59b6",
+                                    groups: [
+                                        { label: "صفحات الدفع", weight: 3, color: "#9b59b6" },
+                                        { label: "النجاح والفشل", weight: 2, color: "#9b59b6" },
+                                        { label: "المدفوعات الجماعية", weight: 3, color: "#9b59b6" }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            label: "🔗 API والخدمات",
+                            weight: 20,
+                            color: "#f39c12",
+                            groups: [
+                                {
+                                    label: "💰 بوابات الدفع",
+                                    weight: 8,
+                                    color: "#9b59b6",
+                                    groups: [
+                                        { label: "Geidea Payment", weight: 4, color: "#9b59b6" },
+                                        { label: "Apple Pay Integration", weight: 2, color: "#9b59b6" },
+                                        { label: "SkipCash System", weight: 2, color: "#9b59b6" }
+                                    ]
+                                },
+                                {
+                                    label: "📊 تحليل البيانات",
+                                    weight: 4,
+                                    color: "#f39c12",
+                                    groups: [
+                                        { label: "Analytics API", weight: 2, color: "#f39c12" },
+                                        { label: "تقييم اللاعبين", weight: 2, color: "#f39c12" }
+                                    ]
+                                },
+                                {
+                                    label: "📁 إدارة الملفات",
+                                    weight: 4,
+                                    color: "#f39c12",
+                                    groups: [
+                                        { label: "رفع الصور", weight: 2, color: "#f39c12" },
+                                        { label: "معالجة الفيديو", weight: 2, color: "#f39c12" }
+                                    ]
+                                },
+                                {
+                                    label: "💬 نظام الرسائل",
+                                    weight: 2,
+                                    color: "#f39c12"
+                                },
+                                {
+                                    label: "🎯 نظام الأهداف",
+                                    weight: 2,
+                                    color: "#f39c12"
+                                }
+                            ]
+                        },
+                        {
+                            label: "🧩 المكونات (Components)",
+                            weight: 25,
+                            color: "#27ae60",
+                            groups: [
+                                {
+                                    label: "🖼️ واجهة المستخدم",
+                                    weight: 8,
+                                    color: "#27ae60",
+                                    groups: [
+                                        { label: "أزرار وحقول", weight: 2, color: "#27ae60" },
+                                        { label: "جداول وقوائم", weight: 2, color: "#27ae60" },
+                                        { label: "نوافذ منبثقة", weight: 2, color: "#27ae60" },
+                                        { label: "تنبيهات وإشعارات", weight: 2, color: "#27ae60" }
+                                    ]
+                                },
+                                {
+                                    label: "⚽ مكونات اللاعبين",
+                                    weight: 6,
+                                    color: "#27ae60",
+                                    groups: [
+                                        { label: "ملفات اللاعبين", weight: 3, color: "#27ae60" },
+                                        { label: "إحصائيات الأداء", weight: 3, color: "#27ae60" }
+                                    ]
+                                },
+                                {
+                                    label: "🏢 مكونات الأندية",
+                                    weight: 4,
+                                    color: "#27ae60",
+                                    groups: [
+                                        { label: "إدارة النادي", weight: 2, color: "#27ae60" },
+                                        { label: "تقييم اللاعبين", weight: 2, color: "#27ae60" }
+                                    ]
+                                },
+                                {
+                                    label: "💳 مكونات الدفع",
+                                    weight: 4,
+                                    color: "#9b59b6",
+                                    groups: [
+                                        { label: "أزرار الدفع", weight: 2, color: "#9b59b6" },
+                                        { label: "معالج الدفع", weight: 2, color: "#9b59b6" }
+                                    ]
+                                },
+                                {
+                                    label: "🎥 مكونات الفيديو",
+                                    weight: 3,
+                                    color: "#27ae60",
+                                    groups: [
+                                        { label: "مشغل الفيديو", weight: 2, color: "#27ae60" },
+                                        { label: "التعليقات", weight: 1, color: "#27ae60" }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            label: "⚙️ المكتبات والأدوات",
+                            weight: 15,
+                            color: "#34495e",
+                            groups: [
+                                {
+                                    label: "🔥 تكامل Firebase",
+                                    weight: 5,
+                                    color: "#e67e22",
+                                    groups: [
+                                        { label: "إعدادات Firebase", weight: 2, color: "#e67e22" },
+                                        { label: "مصادقة المستخدمين", weight: 2, color: "#e67e22" },
+                                        { label: "قاعدة البيانات", weight: 1, color: "#e67e22" }
+                                    ]
+                                },
+                                {
+                                    label: "💾 تكامل Supabase",
+                                    weight: 3,
+                                    color: "#2ecc71",
+                                    groups: [
+                                        { label: "عميل Supabase", weight: 2, color: "#2ecc71" },
+                                        { label: "تخزين الملفات", weight: 1, color: "#2ecc71" }
+                                    ]
+                                },
+                                {
+                                    label: "🌍 نظام العملات",
+                                    weight: 3,
+                                    color: "#f1c40f",
+                                    groups: [
+                                        { label: "تحويل العملات", weight: 2, color: "#f1c40f" },
+                                        { label: "60+ عملة مدعومة", weight: 1, color: "#f1c40f" }
+                                    ]
+                                },
+                                {
+                                    label: "🛠️ أدوات مساعدة",
+                                    weight: 4,
+                                    color: "#34495e",
+                                    groups: [
+                                        { label: "ضغط الصور", weight: 1, color: "#34495e" },
+                                        { label: "حساب العمر", weight: 1, color: "#34495e" },
+                                        { label: "فلترة وحدة التحكم", weight: 1, color: "#34495e" },
+                                        { label: "مرشح الصور", weight: 1, color: "#34495e" }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            label: "👑 النظام الإداري المتطور",
+                            weight: 20,
+                            color: "#e74c3c",
+                            groups: [
+                                {
+                                    label: "📊 لوحة التحكم الرئيسية",
+                                    weight: 5,
+                                    color: "#e74c3c",
+                                    groups: [
+                                        { label: "إحصائيات شاملة", weight: 3, color: "#e74c3c" },
+                                        { label: "رسوم بيانية", weight: 2, color: "#e74c3c" }
+                                    ]
+                                },
+                                {
+                                    label: "👥 إدارة المستخدمين",
+                                    weight: 6,
+                                    color: "#e74c3c",
+                                    groups: [
+                                        { label: "جميع أنواع المستخدمين", weight: 3, color: "#e74c3c" },
+                                        { label: "إدارة اللاعبين المفصلة", weight: 3, color: "#e74c3c" }
+                                    ]
+                                },
+                                {
+                                    label: "💰 إدارة المدفوعات",
+                                    weight: 4,
+                                    color: "#9b59b6",
+                                    groups: [
+                                        { label: "المدفوعات العادية", weight: 2, color: "#9b59b6" },
+                                        { label: "المدفوعات الجماعية", weight: 2, color: "#9b59b6" }
+                                    ]
+                                },
+                                {
+                                    label: "🖥️ مراقبة النظام",
+                                    weight: 3,
+                                    color: "#e74c3c",
+                                    groups: [
+                                        { label: "مراقبة Firebase", weight: 1, color: "#e74c3c" },
+                                        { label: "مراقبة Supabase", weight: 1, color: "#e74c3c" },
+                                        { label: "إحصائيات الأداء", weight: 1, color: "#e74c3c" }
+                                    ]
+                                },
+                                {
+                                    label: "📈 التقارير المالية",
+                                    weight: 2,
+                                    color: "#e74c3c"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // إعدادات مختلفة للعرض
+        const viewModes = {
+            overview: projectData,
+            dashboards: {
+                groups: [{
+                    label: "🏛️ لوحات التحكم",
+                    weight: 100,
+                    color: "#3498db",
+                    groups: [
+                        { label: "🏃‍♂️ لوحة اللاعب", weight: 20, color: "#3498db" },
+                        { label: "⚽ لوحة النادي", weight: 20, color: "#2980b9" },
+                        { label: "🏫 لوحة الأكاديمية", weight: 20, color: "#3498db" },
+                        { label: "🤝 لوحة الوكيل", weight: 15, color: "#2980b9" },
+                        { label: "👨‍🏫 لوحة المدرب", weight: 15, color: "#3498db" },
+                        { label: "👑 النظام الإداري", weight: 30, color: "#e74c3c" }
+                    ]
+                }]
+            },
+            payments: {
+                groups: [{
+                    label: "💳 أنظمة الدفع",
+                    weight: 100,
+                    color: "#9b59b6",
+                    groups: [
+                        { label: "💰 Geidea Payment Gateway", weight: 40, color: "#9b59b6" },
+                        { label: "🍎 Apple Pay Integration", weight: 25, color: "#8e44ad" },
+                        { label: "💸 SkipCash System", weight: 20, color: "#9b59b6" },
+                        { label: "📊 Multi-Currency Support", weight: 15, color: "#f1c40f" }
+                    ]
+                }]
+            },
+            admin: {
+                groups: [{
+                    label: "👑 النظام الإداري",
+                    weight: 100,
+                    color: "#e74c3c",
+                    groups: [
+                        { label: "📊 لوحة التحكم الرئيسية", weight: 25, color: "#e74c3c" },
+                        { label: "👥 إدارة المستخدمين", weight: 30, color: "#c0392b" },
+                        { label: "💰 إدارة المدفوعات", weight: 20, color: "#9b59b6" },
+                        { label: "🖥️ مراقبة النظام", weight: 15, color: "#e74c3c" },
+                        { label: "📈 التقارير المالية", weight: 10, color: "#c0392b" }
+                    ]
+                }]
+            },
+            components: {
+                groups: [{
+                    label: "🧩 المكونات",
+                    weight: 100,
+                    color: "#27ae60",
+                    groups: [
+                        { label: "🖼️ واجهة المستخدم", weight: 30, color: "#27ae60" },
+                        { label: "⚽ مكونات اللاعبين", weight: 25, color: "#2ecc71" },
+                        { label: "🏢 مكونات الأندية", weight: 20, color: "#27ae60" },
+                        { label: "💳 مكونات الدفع", weight: 15, color: "#9b59b6" },
+                        { label: "🎥 مكونات الفيديو", weight: 10, color: "#2ecc71" }
+                    ]
+                }]
+            }
+        };
+
+        // إنشاء FoamTree
+        let foamtree;
+        
+        function initializeFoamTree() {
+            foamtree = new CarrotSearchFoamTree({
+                id: "foamtree",
+                dataObject: projectData,
+                
+                // إعدادات المظهر
+                stacking: "flattened",
+                descriptionGroupType: "stab",
+                descriptionGroupSize: 0.3,
+                descriptionGroupMinHeight: 40,
+                descriptionGroupMaxHeight: 0.8,
+                
+                // الألوان والتدرجات
+                groupColorDecorator: function(opts, props, vars) {
+                    vars.groupColor = props.group.color || "#3498db";
+                    vars.labelColor = "#ffffff";
+                    vars.groupStrokeColor = "#ffffff";
+                    vars.groupStrokeWidth = 2;
+                },
+                
+                // التفاعل
+                rolloutDuration: 1500,
+                pullbackDuration: 1000,
+                fadeInDuration: 1000,
+                
+                // النصوص
+                groupLabelDecorator: function(opts, props, vars) {
+                    vars.labelText = props.group.label;
+                    vars.labelFontFamily = "Segoe UI, Arial, sans-serif";
+                    vars.labelFontSize = Math.max(10, Math.min(18, props.boxWidth / 8));
+                    vars.labelFontWeight = "bold";
+                },
+                
+                // الأحداث
+                onGroupHover: function(info) {
+                    if (info.group) {
+                        this.set("highlightGroup", info.group);
+                    } else {
+                        this.set("highlightGroup", null);
+                    }
+                },
+                
+                onGroupClick: function(info) {
+                    if (info.group && info.group.groups) {
+                        this.zoom(info.group);
+                    }
+                },
+                
+                onGroupDoubleClick: function(info) {
+                    this.zoom(null);
+                }
+            });
+        }
+        
+        // وظائف التحكم
+        function resetView() {
+            foamtree.zoom(null);
+        }
+        
+        function expandAll() {
+            foamtree.set("dataObject", JSON.parse(JSON.stringify(projectData)));
+        }
+        
+        function collapseAll() {
+            foamtree.zoom(projectData.groups[0]);
+        }
+        
+        // تغيير وضع العرض
+        document.getElementById('viewMode').addEventListener('change', function(e) {
+            const mode = e.target.value;
+            foamtree.set('dataObject', viewModes[mode]);
+        });
+        
+        // تشغيل FoamTree عند تحميل الصفحة
+        window.addEventListener('load', function() {
+            initializeFoamTree();
+        });
+        
+        // إعادة تحجيم عند تغيير حجم النافذة
+        window.addEventListener('resize', function() {
+            foamtree.resize();
+        });
+    </script>
+</body>
+</html> 

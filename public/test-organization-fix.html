@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار إصلاح تبعية اللاعب</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .title {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .test-section {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .test-link {
+            display: block;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .test-link:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .player-name {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .player-id {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+        .expected {
+            color: #90EE90;
+            font-size: 0.9em;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .status.fixed { background: #4CAF50; }
+        .status.testing { background: #FF9800; }
+        .changelog {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .changelog h3 {
+            color: #4CAF50;
+            margin-top: 0;
+        }
+        .change-item {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🔧 اختبار إصلاح تبعية اللاعب</h1>
+        
+        <!-- ملخص الإصلاح -->
+        <div class="changelog">
+            <h3>✅ التغييرات المطبقة:</h3>
+            <div class="change-item">🔄 إصلاح Firebase API من v8 إلى v9</div>
+            <div class="change-item">🛠️ تحديث دالة fetchPlayerOrganization</div>
+            <div class="change-item">🎯 استخدام doc() و getDoc() بدلاً من collection().doc().get()</div>
+            <div class="change-item">📊 إضافة معلومات إضافية للمنظمة (email, phone, founded, إلخ)</div>
+        </div>
+
+        <!-- اختبار اللاعبين -->
+        <div class="test-section">
+            <h3>🧪 اختبار اللاعبين المختلفين:</h3>
+            
+            <a href="http://localhost:3000/dashboard/player/reports?view=hChYVnu04cXe3KK8JJQu" 
+               class="test-link" target="_blank">
+                <span class="status fixed">تم الإصلاح</span>
+                <div class="player-name">👤 علي فراس</div>
+                <div class="player-id">ID: hChYVnu04cXe3KK8JJQu</div>
+                <div class="expected">متوقع: يظهر انتماؤه لنادي أسوان العام</div>
+            </a>
+            
+            <a href="http://localhost:3000/dashboard/player/reports?view=c9F975YF3XWBssiXaaZItbBVM2Q2" 
+               class="test-link" target="_blank">
+                <span class="status testing">اختبار</span>
+                <div class="player-name">👤 لاعب مستقل</div>
+                <div class="player-id">ID: c9F975YF3XWBssiXaaZItbBVM2Q2</div>
+                <div class="expected">متوقع: يظهر كلاعب مستقل</div>
+            </a>
+        </div>
+
+        <!-- تعليمات الاختبار -->
+        <div class="test-section">
+            <h3>📋 كيفية الاختبار:</h3>
+            <ol>
+                <li>انقر على الروابط أعلاه</li>
+                <li>تأكد من تسجيل الدخول أولاً</li>
+                <li>افحص قسم "الجهة التابع لها اللاعب" في الصفحة</li>
+                <li>تأكد من ظهور المعلومات بشكل صحيح</li>
+                <li>افتح Developer Console لمراقبة الرسائل التشخيصية</li>
+            </ol>
+        </div>
+
+        <!-- مؤشرات النجاح -->
+        <div class="test-section">
+            <h3>🎯 مؤشرات نجاح الإصلاح:</h3>
+            <ul>
+                <li>✅ ظهور اسم الجهة واللوجو</li>
+                <li>✅ عرض نوع الجهة (نادي/أكاديمية/مدرب/وكيل)</li>
+                <li>✅ إمكانية النقر لعرض الملف الشخصي للجهة</li>
+                <li>✅ ظهور معلومات إضافية (المدينة، الهاتف، إلخ)</li>
+                <li>❌ عدم ظهور رسائل خطأ في Console</li>
+            </ul>
+        </div>
+
+        <!-- روابط إضافية للاختبار -->
+        <div class="test-section">
+            <h3>🔗 روابط إضافية:</h3>
+            <a href="http://localhost:3000/dashboard/club/players" class="test-link">
+                📊 صفحة لاعبي النادي
+            </a>
+            <a href="http://localhost:3000/dashboard/academy/players" class="test-link">
+                🏆 صفحة لاعبي الأكاديمية
+            </a>
+            <a href="http://localhost:3000/dashboard/trainer/players" class="test-link">
+                👨‍🏫 صفحة لاعبي المدرب
+            </a>
+            <a href="http://localhost:3000/dashboard/agent/players" class="test-link">
+                💼 صفحة لاعبي الوكيل
+            </a>
+        </div>
+
+        <!-- معلومات تقنية -->
+        <div class="test-section">
+            <h3>🔧 معلومات تقنية:</h3>
+            <p><strong>المشكلة الأصلية:</strong> استخدام Firebase v8 API القديم</p>
+            <p><strong>الحل:</strong> تحديث لاستخدام Firebase v9 API الجديد</p>
+            <p><strong>الملف المُحدث:</strong> src/app/dashboard/player/reports/page.tsx</p>
+            <p><strong>الدالة المُحدثة:</strong> fetchPlayerOrganization</p>
+        </div>
+    </div>
+
+    <script>
+        // إضافة معلومات الوقت
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            const timeInfo = document.createElement('p');
+            timeInfo.style.textAlign = 'center';
+            timeInfo.style.opacity = '0.7';
+            timeInfo.style.fontSize = '0.9em';
+            timeInfo.innerHTML = `🕒 تم إنشاء هذا الاختبار في: ${now.toLocaleString('ar-SA')}`;
+            document.querySelector('.container').appendChild(timeInfo);
+        });
+
+        // عداد النقرات
+        const links = document.querySelectorAll('.test-link');
+        links.forEach(link => {
+            link.addEventListener('click', function() {
+                const counter = localStorage.getItem('test-clicks') || 0;
+                localStorage.setItem('test-clicks', parseInt(counter) + 1);
+                console.log(`🔗 تم النقر على الرابط للمرة رقم ${parseInt(counter) + 1}`);
+            });
+        });
+    </script>
+</body>
+</html> 

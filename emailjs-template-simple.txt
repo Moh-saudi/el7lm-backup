@@ -1,0 +1,36 @@
+📧 نموذج رسالة EmailJS - el7lm
+=====================================
+
+انسخ الكود التالي إلى EmailJS:
+
+---
+
+Subject: رمز التحقق - el7lm
+
+---
+
+HTML Content:
+(انسخ من ملف emailjs-template.html)
+
+---
+
+المتغيرات المطلوبة:
+- {{user_name}} - اسم المستخدم
+- {{otp_code}} - رمز التحقق
+
+---
+
+إعدادات EmailJS:
+1. اذهب إلى https://dashboard.emailjs.com/
+2. Templates → إنشاء template جديد أو تحديث template_o29zcgp
+3. انسخ HTML من ملف emailjs-template.html
+4. في Settings:
+   - To Email: info@el7lm.com (البريد الرسمي للمشروع)
+   - From Name: el7lm Team
+   - Reply To: info@el7lm.com
+   - Subject: رمز التحقق - el7lm
+
+---
+
+اختبار:
+بعد إضافة النموذج، اختبر على: http://localhost:3001/test-email 

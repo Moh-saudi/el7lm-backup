@@ -1,0 +1,13 @@
+Country Code,Country,Contact's Public Display Name,Phone Number,is My Contact,Saved Name,Group Name
++20,Egypt,Ahmed Mohamed,123456789,true,Ahmed,General Group
++966,Saudi Arabia,Mohamed Ali,123456789,false,Mohamed,VIP Group
++971,UAE,Sara Ahmed,123456789,true,Sara,Test Group
++965,Kuwait,Ali Hassan,123456789,false,Ali,General Group
++968,Oman,Fatima Omar,123456789,true,Fatima,VIP Group
+
+
+
+
+
+
+

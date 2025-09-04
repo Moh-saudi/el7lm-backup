@@ -1,0 +1,37 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Club Theme -->
+  <circle cx="100" cy="100" r="100" fill="url(#gradient1)"/>
+  
+  <!-- Building Icon -->
+  <rect x="70" y="80" width="60" height="50" fill="white" opacity="0.95"/>
+  <rect x="75" y="85" width="10" height="15" fill="#1e40af" opacity="0.8"/>
+  <rect x="90" y="85" width="10" height="15" fill="#1e40af" opacity="0.8"/>
+  <rect x="105" y="85" width="10" height="15" fill="#1e40af" opacity="0.8"/>
+  <rect x="120" y="85" width="10" height="15" fill="#1e40af" opacity="0.8"/>
+  <rect x="75" y="105" width="10" height="15" fill="#1e40af" opacity="0.8"/>
+  <rect x="90" y="105" width="10" height="15" fill="#1e40af" opacity="0.8"/>
+  <rect x="105" y="105" width="10" height="15" fill="#1e40af" opacity="0.8"/>
+  <rect x="120" y="105" width="10" height="15" fill="#1e40af" opacity="0.8"/>
+  
+  <!-- Flag -->
+  <rect x="125" y="70" width="15" height="10" fill="#ef4444"/>
+  <rect x="125" y="70" width="2" height="10" fill="#1e40af"/>
+  
+  <!-- Decorative Elements -->
+  <circle cx="40" cy="60" r="6" fill="white" opacity="0.4"/>
+  <circle cx="160" cy="80" r="5" fill="white" opacity="0.4"/>
+  <circle cx="50" cy="150" r="4" fill="white" opacity="0.4"/>
+  <circle cx="150" cy="140" r="6" fill="white" opacity="0.4"/>
+  
+  <!-- Inner Glow -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="2" opacity="0.2"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#047857;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg> 

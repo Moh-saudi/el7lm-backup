@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح فوري للصور</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 {
+            color: #dc2626;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .big-button {
+            background: linear-gradient(45deg, #dc2626, #b91c1c);
+            color: white;
+            border: none;
+            padding: 25px 50px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .big-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(220,38,38,0.5);
+        }
+        .big-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .status.waiting {
+            background: #fef3c7;
+            color: #92400e;
+            border: 2px solid #f59e0b;
+        }
+        .status.working {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #3b82f6;
+            animation: pulse 2s infinite;
+        }
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 2px solid #16a34a;
+        }
+        .status.error {
+            background: #fef2f2;
+            color: #7f1d1d;
+            border: 2px solid #dc2626;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .result {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: right;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .emoji {
+            font-size: 3em;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="emoji">🚨</div>
+        <h1>إصلاح فوري للصور</h1>
+        
+        <div id="status" class="status waiting">
+            ⚡ اضغط الزر للإصلاح الفوري
+        </div>
+        
+        <button id="fix-btn" class="big-button" onclick="fixImages()">
+            🛠️ إصلاح الصور الآن
+        </button>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const resultEl = document.getElementById('result');
+        const fixBtn = document.getElementById('fix-btn');
+        
+        function setStatus(message, type) {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+        
+        function showResult(data) {
+            resultEl.style.display = 'block';
+            resultEl.innerHTML = `
+                <div style="color: #16a34a; font-weight: bold; margin-bottom: 10px;">📊 نتائج الإصلاح:</div>
+                <div>📋 إجمالي اللاعبين: ${data.total || 0}</div>
+                <div>⚠️ صور مكسورة وُجدت: ${data.brokenFound || 0}</div>
+                <div>✅ تم إصلاحها: ${data.fixed || 0}</div>
+                ${data.fixed > 0 ? '<div style="color: #dc2626; margin-top: 15px;">💡 أعد تشغيل الخادم الآن: npm run dev</div>' : ''}
+            `;
+        }
+        
+        async function fixImages() {
+            fixBtn.disabled = true;
+            setStatus('🔄 جاري الإصلاح...', 'working');
+            resultEl.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/fix-images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.fixed > 0) {
+                        setStatus(`🎉 تم إصلاح ${data.fixed} صورة بنجاح!`, 'success');
+                        showResult(data);
+                        
+                        // عرض تنبيه للمستخدم
+                        setTimeout(() => {
+                            alert(`تم إصلاح ${data.fixed} صورة!\\n\\nخطوات ما بعد الإصلاح:\\n1. أغلق الخادم (Ctrl+C)\\n2. شغله مرة أخرى: npm run dev\\n3. تحقق من اختفاء الأخطاء`);
+                        }, 1000);
+                        
+                    } else {
+                        setStatus('✅ جميع الصور سليمة!', 'success');
+                        showResult(data);
+                    }
+                } else {
+                    setStatus(`❌ فشل الإصلاح: ${data.error}`, 'error');
+                }
+                
+            } catch (error) {
+                setStatus(`❌ خطأ في الاتصال: ${error.message}`, 'error');
+                console.error('Error:', error);
+            }
+            
+            fixBtn.disabled = false;
+        }
+        
+        // رسالة ترحيبية
+        console.log('🚨 صفحة الإصلاح الفوري جاهزة!');
+        console.log('💡 لا حاجة للكونسول، فقط اضغط الزر');
+    </script>
+</body>
+</html> 

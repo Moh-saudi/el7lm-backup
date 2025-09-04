@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح سريع لأخطاء الصور</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        .status {
+            font-size: 1.2em;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .loading {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        .progress {
+            width: 100%;
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #28a745);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        button {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.4);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .console {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+            text-align: right;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 إصلاح سريع لأخطاء الصور</h1>
+        
+        <div id="status" class="status">
+            🔄 جاري التحميل...
+        </div>
+        
+        <div class="progress">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        
+        <div id="stats" class="stats" style="display: none;">
+            <div class="stat-card">
+                <div id="test-urls" class="stat-number">0</div>
+                <div class="stat-label">روابط وهمية</div>
+            </div>
+            <div class="stat-card">
+                <div id="broken-supabase" class="stat-number">0</div>
+                <div class="stat-label">صور Supabase مكسورة</div>
+            </div>
+            <div class="stat-card">
+                <div id="total-fixed" class="stat-number">0</div>
+                <div class="stat-label">إجمالي المُصلح</div>
+            </div>
+        </div>
+        
+        <div>
+            <button id="fix-btn" onclick="startFix()" disabled>تشغيل الإصلاح</button>
+            <button onclick="window.location.reload()">إعادة فحص</button>
+        </div>
+        
+        <div id="console" class="console">
+            جاري تحميل النظام...
+        </div>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const progressBar = document.getElementById('progress-bar');
+        const statsEl = document.getElementById('stats');
+        const consoleEl = document.getElementById('console');
+        const fixBtn = document.getElementById('fix-btn');
+        
+        let isReady = false;
+        
+        function updateConsole(message) {
+            const timestamp = new Date().toLocaleTimeString('ar-SA');
+            consoleEl.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+        
+        function updateProgress(percent) {
+            progressBar.style.width = percent + '%';
+        }
+        
+        function updateStats(stats) {
+            document.getElementById('test-urls').textContent = stats.testUrlCount || 0;
+            document.getElementById('broken-supabase').textContent = stats.brokenSupabaseCount || 0;
+            document.getElementById('total-fixed').textContent = stats.totalFixed || 0;
+            statsEl.style.display = 'grid';
+        }
+        
+        function showStatus(message, type = 'status') {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+        
+        async function startFix() {
+            if (!isReady) {
+                showStatus('❌ النظام غير جاهز بعد', 'error');
+                return;
+            }
+            
+            fixBtn.disabled = true;
+            showStatus('🔄 جاري تشغيل الإصلاح...', 'loading');
+            updateProgress(10);
+            
+            try {
+                updateConsole('🚀 بدء عملية الإصلاح...');
+                
+                const result = await window.quickImageFix();
+                
+                updateProgress(100);
+                
+                if (result.success) {
+                    showStatus('✅ تم إنهاء الإصلاح بنجاح!', 'success');
+                    updateStats(result);
+                    
+                    if (result.totalFixed > 0) {
+                        updateConsole(`🎉 تم إصلاح ${result.totalFixed} صورة!`);
+                        updateConsole('💡 أعد تشغيل خادم التطوير الآن');
+                    } else {
+                        updateConsole('✅ لا توجد مشاكل في الصور');
+                    }
+                } else {
+                    showStatus('❌ فشل في الإصلاح: ' + result.error, 'error');
+                    updateConsole('❌ حدث خطأ: ' + result.error);
+                }
+            } catch (error) {
+                showStatus('❌ خطأ غير متوقع', 'error');
+                updateConsole('❌ خطأ: ' + error.message);
+            }
+            
+            fixBtn.disabled = false;
+        }
+        
+        // تحميل النظام
+        async function initSystem() {
+            try {
+                updateConsole('📱 تحميل Firebase...');
+                updateProgress(30);
+                
+                // تحميل سكريپت الإصلاح
+                const script = document.createElement('script');
+                script.src = '/js/quick-image-fix.js';
+                script.onload = () => {
+                    updateProgress(80);
+                    updateConsole('✅ تم تحميل أدوات الإصلاح');
+                    
+                    // انتظار قليل للتأكد من تحميل كل شيء
+                    setTimeout(() => {
+                        isReady = true;
+                        showStatus('✅ النظام جاهز للاستخدام', 'success');
+                        updateProgress(100);
+                        fixBtn.disabled = false;
+                        updateConsole('🎯 اضغط "تشغيل الإصلاح" للبدء');
+                    }, 1000);
+                };
+                script.onerror = () => {
+                    showStatus('❌ فشل في تحميل أدوات الإصلاح', 'error');
+                    updateConsole('❌ تأكد من وجود ملف quick-image-fix.js');
+                };
+                
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                showStatus('❌ خطأ في التحميل', 'error');
+                updateConsole('❌ خطأ: ' + error.message);
+            }
+        }
+        
+        // بدء التحميل عند فتح الصفحة
+        initSystem();
+    </script>
+</body>
+</html> 

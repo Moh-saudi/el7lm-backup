@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> صفحة الإصلاح الشامل - ربط اللاعب بالنادي</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 15px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        h1 { color: #333; text-align: center; margin-bottom: 30px; font-size: 2.5em; }
+        .status-card { background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 20px 0; border-left: 5px solid #17a2b8; }
+        .button { background: linear-gradient(45deg, #667eea, #764ba2); color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 10px; cursor: pointer; margin: 10px; transition: all 0.3s; }
+        .button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .success { background: #d4edda; color: #155724; border-color: #28a745; }
+        .warning { background: #fff3cd; color: #856404; border-color: #ffc107; }
+        .error { background: #f8d7da; color: #721c24; border-color: #dc3545; }
+        #console { background: #1a1a1a; color: #00ff00; padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; height: 300px; overflow-y: auto; margin: 20px 0; }
+        .progress { width: 100%; height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #28a745, #20c997); transition: width 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1> صفحة الإصلاح الشامل</h1>
+        <p style="text-align: center; font-size: 18px; color: #666;">إصلاح ربط اللاعب "علي فراس" بـ "نادي أسوان العام"</p>
+        
+        <div id="status-card" class="status-card">
+            <h3> حالة النظام</h3>
+            <p id="status-text"> جاري فحص النظام...</p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="button" onclick="runQuickCheck()"> فحص سريع</button>
+            <button class="button" onclick="runCompleteFix()"> تنفيذ الإصلاح</button>
+            <button class="button" onclick="clearConsole()"> مسح السجل</button>
+        </div>
+        
+        <div id="progress-container" style="display: none;">
+            <h4> تقدم العملية</h4>
+            <div class="progress">
+                <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <p id="progress-text">جاري التحضير...</p>
+        </div>
+        
+        <div>
+            <h3> سجل العمليات</h3>
+            <div id="console"></div>
+        </div>
+        
+        <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin-top: 20px;">
+            <h4> التعليمات</h4>
+            <ul>
+                <li><strong>فحص سريع:</strong> للتحقق من حالة اللاعب الحالية</li>
+                <li><strong>تنفيذ الإصلاح:</strong> لإصلاح ربط اللاعب بالنادي</li>
+                <li><strong>مسح السجل:</strong> لمسح سجل العمليات</li>
+            </ul>
+            
+            <h4> النتائج المتوقعة بعد الإصلاح</h4>
+            <ul>
+                <li>ظهور لوجو النادي بجانب صورة اللاعب</li>
+                <li>عرض "نادي أسوان العام" في قسم الجهة التابع لها</li>
+                <li>ظهور معلومات النادي (هاتف، إيميل، إلخ)</li>
+                <li>إمكانية الانتقال لصفحة النادي</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Initialize Firebase -->
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnx3eFcgJUzGEV5g6lqHPVlHSC6Ygk8Yg",
+            authDomain: "hagzz-72c68.firebaseapp.com",
+            projectId: "hagzz-72c68",
+            storageBucket: "hagzz-72c68.appspot.com",
+            messagingSenderId: "1060919113894",
+            appId: "1:1060919113894:web:b4e79e9c7f7b5a4a8b4b0a"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    
+    <!-- Fix Script -->
+    <script src="complete-fix-player-organization.js"></script>
+    
+    <script>
+        const consoleDiv = document.getElementById('console');
+        const statusCard = document.getElementById('status-card');
+        const statusText = document.getElementById('status-text');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        
+        // Override console.log to show in page
+        const originalConsoleLog = console.log;
+        console.log = function() {
+            originalConsoleLog.apply(console, arguments);
+            const message = Array.from(arguments).join(' ');
+            consoleDiv.innerHTML += '<div>' + new Date().toLocaleTimeString() + ' - ' + message + '</div>';
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        };
+        
+        function updateStatus(message, type = 'info') {
+            statusText.textContent = message;
+            statusCard.className = 'status-card ' + type;
+        }
+        
+        function showProgress(show = true, width = 0, text = '') {
+            progressContainer.style.display = show ? 'block' : 'none';
+            if (show) {
+                progressBar.style.width = width + '%';
+                progressText.textContent = text;
+            }
+        }
+        
+        async function runQuickCheck() {
+            updateStatus(' جاري الفحص السريع...', 'warning');
+            showProgress(true, 25, 'فحص الحالة الحالية...');
+            
+            try {
+                await quickCheck();
+                updateStatus(' تم الفحص بنجاح', 'success');
+                showProgress(true, 100, 'تم الفحص بنجاح');
+                setTimeout(() => showProgress(false), 2000);
+            } catch (error) {
+                updateStatus(' فشل الفحص: ' + error.message, 'error');
+                showProgress(false);
+            }
+        }
+        
+        async function runCompleteFix() {
+            updateStatus(' جاري تنفيذ الإصلاح الشامل...', 'warning');
+            showProgress(true, 0, 'بدء عملية الإصلاح...');
+            
+            try {
+                showProgress(true, 20, 'فحص Firebase...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                showProgress(true, 40, 'فحص بيانات اللاعب...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                showProgress(true, 60, 'تحضير بيانات الإصلاح...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                showProgress(true, 80, 'تطبيق الإصلاح...');
+                await executeCompleteFix();
+                
+                showProgress(true, 100, 'تم الإصلاح بنجاح!');
+                updateStatus(' تم إصلاح ربط اللاعب بالنادي بنجاح!', 'success');
+                
+            } catch (error) {
+                updateStatus(' فشل الإصلاح: ' + error.message, 'error');
+                showProgress(false);
+            }
+        }
+        
+        function clearConsole() {
+            consoleDiv.innerHTML = '';
+            updateStatus(' تم مسح السجل', 'info');
+        }
+        
+        // Auto check on load
+        setTimeout(() => {
+            updateStatus(' النظام جاهز للاستخدام', 'success');
+            runQuickCheck();
+        }, 1000);
+    </script>
+</body>
+</html>

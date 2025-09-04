@@ -1,0 +1,36 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Trainer Theme -->
+  <circle cx="100" cy="100" r="100" fill="url(#gradient1)"/>
+  
+  <!-- Trainer Icon -->
+  <circle cx="100" cy="70" r="20" fill="white" opacity="0.95"/>
+  <path d="M75 140C75 120 85 110 100 110C115 110 125 120 125 140" fill="white" opacity="0.95"/>
+  
+  <!-- Whistle -->
+  <rect x="110" y="75" width="15" height="8" fill="#f59e0b" opacity="0.9"/>
+  <circle cx="110" cy="79" r="2" fill="#f59e0b" opacity="0.9"/>
+  
+  <!-- Stopwatch -->
+  <circle cx="85" y="75" r="8" fill="white" opacity="0.9"/>
+  <circle cx="85" y="75" r="6" fill="#1e40af" opacity="0.8"/>
+  <line x1="85" y1="75" x2="85" y2="69" stroke="white" stroke-width="2"/>
+  <line x1="85" y1="75" x2="89" y2="75" stroke="white" stroke-width="2"/>
+  
+  <!-- Decorative Elements -->
+  <circle cx="40" cy="60" r="6" fill="white" opacity="0.4"/>
+  <circle cx="160" cy="80" r="5" fill="white" opacity="0.4"/>
+  <circle cx="50" cy="150" r="4" fill="white" opacity="0.4"/>
+  <circle cx="150" cy="140" r="6" fill="white" opacity="0.4"/>
+  
+  <!-- Inner Glow -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="2" opacity="0.2"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e3a8a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg> 

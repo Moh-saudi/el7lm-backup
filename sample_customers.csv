@@ -1,0 +1,18 @@
+Name,Phone,Email,Country,Country Code,Contact's Public Display Name,is My Contact,Saved Name,Group Name
+أحمد محمد,01234567890,ahmed@example.com,مصر,20,أحمد محمد,true,أحمد,اللاعبين المحتملين
+فاطمة علي,01234567891,fatima@example.com,مصر,20,فاطمة علي,true,فاطمة,اللاعبين المسجلين
+محمد حسن,01234567892,mohamed@example.com,مصر,20,محمد حسن,false,محمد,اللاعبين المحتملين
+سارة أحمد,01234567893,sara@example.com,مصر,20,سارة أحمد,true,سارة,VIP
+علي محمود,01234567894,ali@example.com,مصر,20,علي محمود,false,علي,اللاعبين المحتملين
+نور الدين,01234567895,nour@example.com,مصر,20,نور الدين,true,نور,اللاعبين المسجلين
+يوسف أحمد,01234567896,youssef@example.com,مصر,20,يوسف أحمد,false,يوسف,اللاعبين المحتملين
+مريم علي,01234567897,mariam@example.com,مصر,20,مريم علي,true,مريم,VIP
+كريم محمد,01234567898,karim@example.com,مصر,20,كريم محمد,false,كريم,اللاعبين المحتملين
+ليلى أحمد,01234567899,layla@example.com,مصر,20,ليلى أحمد,true,ليلى,اللاعبين المسجلين
+
+
+
+
+
+
+

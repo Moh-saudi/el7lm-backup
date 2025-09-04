@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // قواعد مؤقتة للإصلاح - أي مستخدم مصادق يمكنه تحديث اللاعبين
+    match /players/{playerId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null; // مؤقت للإصلاح
+      allow create: if request.auth != null;
+    }
+    
+    // باقي القواعد تبقى كما هي
+    match /clubs/{clubId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == clubId;
+    }
+    
+    match /agents/{agentId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == agentId;
+    }
+    
+    match /academies/{academyId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == academyId;
+    }
+    
+    match /trainers/{trainerId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == trainerId;
+    }
+    
+    // باقي القواعد للرسائل والمدفوعات إلخ
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+} 
