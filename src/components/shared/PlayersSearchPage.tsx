@@ -196,37 +196,30 @@ export default function PlayersSearchPage() {
     try {
       const allPlayers: Player[] = [];
 
-      // Fetch dependent players from players collection, ensuring they are not deleted
+      // Fetch dependent players then filter locally to avoid composite index and include docs without isDeleted
       const playersQuery = query(
-        collection(db, 'players'), 
-        where('isDeleted', '!=', true),
-        orderBy('createdAt', 'desc'), 
+        collection(db, 'players'),
+        orderBy('createdAt', 'desc'),
         limit(100)
       );
       const playersSnapshot = await getDocs(playersQuery);
-      const dependentPlayers = playersSnapshot.docs.map(doc => ({
-            id: doc.id,
-        ...doc.data()
-      })) as Player[];
+      const dependentPlayers = playersSnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter((p: any) => p.isDeleted !== true) as Player[];
       
       secureConsole.log('📊 تم جلب', dependentPlayers.length, 'لاعب تابع من مجموعة players');
       allPlayers.push(...dependentPlayers);
       
-      // Fetch independent players from users collection, ensuring they are not deleted
+      // Fetch independent players from users collection (no composite index), then filter locally
       const usersQuery = query(
-        collection(db, 'users'), 
+        collection(db, 'users'),
         where('accountType', '==', 'player'),
-        where('isDeleted', '!=', true),
-        orderBy('createdAt', 'desc'), 
         limit(100)
       );
       const usersSnapshot = await getDocs(usersQuery);
       const usersIndependentPlayers = usersSnapshot.docs
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-        .filter((player: any) => player.accountType === 'player') as Player[];
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter((player: any) => player.accountType === 'player' && player.isDeleted !== true) as Player[];
       
       secureConsole.log('📊 تم جلب', usersIndependentPlayers.length, 'لاعب من مجموعة player');
       allPlayers.push(...usersIndependentPlayers);

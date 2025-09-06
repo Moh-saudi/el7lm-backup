@@ -79,6 +79,23 @@ self.addEventListener('fetch', (event) => {
   // تخطي طلبات chrome-extension
   if (url.startsWith('chrome-extension://')) return;
 
+  // تخطي طلبات الفيديو وطلبات Range لتجنب مشاكل التخزين المؤقت وبث الوسائط
+  try {
+    const isVideoRequest =
+      request.destination === 'video' ||
+      /\.(mp4|webm|ogg|m3u8|mpd)(\?.*)?$/i.test(url) ||
+      (url.includes('/storage/v1/object/public/') && /\/videos\//i.test(url));
+
+    const hasRangeHeader = request.headers && request.headers.has('range');
+
+    if (isVideoRequest || hasRangeHeader) {
+      event.respondWith(fetch(request));
+      return;
+    }
+  } catch (_) {
+    // في حال حدوث أي خطأ غير متوقع، نكمل التدفق الطبيعي
+  }
+
   // تحديد نوع الطلب
   const requestType = getRequestType(url);
 
@@ -98,6 +115,8 @@ function getRequestType(url) {
     if (url.includes('/_next/static/')) return 'static';
     if (url.includes('/images/') || url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/)) return 'image';
     if (url.match(/\.(woff2|woff|ttf)$/)) return 'font';
+    if (url.match(/\.(mp4|webm|ogg|m3u8|mpd)(\?.*)?$/i)) return 'video';
+    if (url.includes('supabase.co') && /\/storage\/v1\/object\/public\//.test(url)) return 'video';
     if (url.includes('firebase') || url.includes('google')) return 'external';
     return 'page';
   } catch (error) {
@@ -121,6 +140,10 @@ async function handleRequest(request, type) {
       
       case 'api':
         return networkOnly(request);
+
+      case 'video':
+        // عدم التخزين المؤقت لطلبات الفيديو لضمان دعم Range والبث المباشر
+        return fetch(request);
       
       case 'external':
         return networkFirst(request, DYNAMIC_CACHE);

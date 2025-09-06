@@ -21,7 +21,9 @@ export async function POST(request: NextRequest) {
       searchTerm,
       rank,
       profileType,
-      messagePreview
+      messagePreview,
+      videoId,
+      commentText
     } = body;
 
     console.log('🔍 الحقول المستخرجة:', { 
@@ -230,6 +232,75 @@ export async function POST(request: NextRequest) {
           viewerType,
           viewerAccountType,
           messagePreview
+        );
+        break;
+
+      case 'video_like':
+        if (!profileOwnerId || !viewerId || !viewerName || !viewerType || !viewerAccountType || !videoId) {
+          return NextResponse.json(
+            { error: 'Missing required fields for video like notification' },
+            { status: 400 }
+          );
+        }
+        notificationId = await interactionNotificationService.sendVideoLikeNotification(
+          profileOwnerId,
+          viewerId,
+          viewerName,
+          viewerType,
+          viewerAccountType,
+          videoId
+        );
+        break;
+
+      case 'video_comment':
+        if (!profileOwnerId || !viewerId || !viewerName || !viewerType || !viewerAccountType || !videoId || !commentText) {
+          return NextResponse.json(
+            { error: 'Missing required fields for video comment notification' },
+            { status: 400 }
+          );
+        }
+        notificationId = await interactionNotificationService.sendVideoCommentNotification(
+          profileOwnerId,
+          viewerId,
+          viewerName,
+          viewerType,
+          viewerAccountType,
+          videoId,
+          commentText
+        );
+        break;
+
+      case 'video_share':
+        if (!profileOwnerId || !viewerId || !viewerName || !viewerType || !viewerAccountType || !videoId) {
+          return NextResponse.json(
+            { error: 'Missing required fields for video share notification' },
+            { status: 400 }
+          );
+        }
+        notificationId = await interactionNotificationService.sendVideoShareNotification(
+          profileOwnerId,
+          viewerId,
+          viewerName,
+          viewerType,
+          viewerAccountType,
+          videoId
+        );
+        break;
+
+      case 'video_view':
+        if (!profileOwnerId || !viewerId || !viewerName || !viewerType || !viewerAccountType || !videoId) {
+          return NextResponse.json(
+            { error: 'Missing required fields for video view notification' },
+            { status: 400 }
+          );
+        }
+        notificationId = await interactionNotificationService.sendVideoViewNotification(
+          profileOwnerId,
+          viewerId,
+          viewerName,
+          viewerType,
+          viewerAccountType,
+          videoId
         );
         break;
 

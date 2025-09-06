@@ -8,7 +8,7 @@ export interface InteractionNotification {
   viewerName: string;
   viewerType: string;
   viewerAccountType: string;
-  type: 'profile_view' | 'search_result' | 'connection_request' | 'message_sent' | 'follow';
+  type: 'profile_view' | 'search_result' | 'connection_request' | 'message_sent' | 'follow' | 'video_like' | 'video_comment' | 'video_share' | 'video_view';
   title: string;
   message: string;
   emoji: string;
@@ -21,6 +21,8 @@ export interface InteractionNotification {
     searchRank?: number;
     profileType?: string;
     interactionTime?: number;
+    videoId?: string;
+    commentText?: string;
   };
   createdAt: any;
   expiresAt?: any;
@@ -135,6 +137,103 @@ class InteractionNotificationService {
     }
   }
 
+  private async sendVideoInteraction(
+    type: 'video_like' | 'video_comment' | 'video_share' | 'video_view',
+    videoOwnerId: string,
+    actorId: string,
+    actorName: string,
+    actorType: string,
+    actorAccountType: string,
+    videoId: string,
+    commentText?: string
+  ): Promise<string> {
+    const titles: Record<string, string> = {
+      video_like: 'إعجاب جديد على فيديوك ❤️',
+      video_comment: 'تعليق جديد على فيديوك 💬',
+      video_share: 'تمت مشاركة فيديوك 🔗',
+      video_view: 'شخص شاهد فيديوك 👀',
+    };
+
+    const messages: Record<string, string> = {
+      video_like: `${actorName} (${this.getAccountTypeLabel(actorAccountType)}) أعجب بفيديوك`,
+      video_comment: `${actorName} (${this.getAccountTypeLabel(actorAccountType)}) علّق: "${(commentText || '').substring(0, 50)}"`,
+      video_share: `${actorName} (${this.getAccountTypeLabel(actorAccountType)}) شارك فيديوك`,
+      video_view: `${actorName} (${this.getAccountTypeLabel(actorAccountType)}) شاهد فيديوك`,
+    };
+
+    const notification: Omit<InteractionNotification, 'id' | 'createdAt'> = {
+      userId: videoOwnerId,
+      viewerId: actorId,
+      viewerName: actorName,
+      viewerType: actorType,
+      viewerAccountType: actorAccountType,
+      type,
+      title: titles[type],
+      message: messages[type],
+      emoji: type === 'video_like' ? '❤️' : type === 'video_comment' ? '💬' : type === 'video_share' ? '🔗' : '👀',
+      isRead: false,
+      priority: type === 'video_comment' ? 'high' : 'medium',
+      actionUrl: `/dashboard/shared/videos`,
+      metadata: {
+        videoId,
+        commentText,
+        interactionTime: Date.now(),
+      },
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    };
+
+    const docRef = await addDoc(collection(db, 'interaction_notifications'), {
+      ...notification,
+      createdAt: serverTimestamp(),
+    });
+
+    return docRef.id;
+  }
+
+  async sendVideoLikeNotification(
+    videoOwnerId: string,
+    actorId: string,
+    actorName: string,
+    actorType: string,
+    actorAccountType: string,
+    videoId: string,
+  ): Promise<string> {
+    return this.sendVideoInteraction('video_like', videoOwnerId, actorId, actorName, actorType, actorAccountType, videoId);
+  }
+
+  async sendVideoCommentNotification(
+    videoOwnerId: string,
+    actorId: string,
+    actorName: string,
+    actorType: string,
+    actorAccountType: string,
+    videoId: string,
+    commentText: string,
+  ): Promise<string> {
+    return this.sendVideoInteraction('video_comment', videoOwnerId, actorId, actorName, actorType, actorAccountType, videoId, commentText);
+  }
+
+  async sendVideoShareNotification(
+    videoOwnerId: string,
+    actorId: string,
+    actorName: string,
+    actorType: string,
+    actorAccountType: string,
+    videoId: string,
+  ): Promise<string> {
+    return this.sendVideoInteraction('video_share', videoOwnerId, actorId, actorName, actorType, actorAccountType, videoId);
+  }
+
+  async sendVideoViewNotification(
+    videoOwnerId: string,
+    actorId: string,
+    actorName: string,
+    actorType: string,
+    actorAccountType: string,
+    videoId: string,
+  ): Promise<string> {
+    return this.sendVideoInteraction('video_view', videoOwnerId, actorId, actorName, actorType, actorAccountType, videoId);
+  }
   // إرسال إشعار نتيجة البحث
   async sendSearchResultNotification(
     profileOwnerId: string,

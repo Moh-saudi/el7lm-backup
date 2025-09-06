@@ -19,9 +19,10 @@ interface CommentsProps {
   videoId: string;
   isOpen: boolean;
   onClose: () => void;
+  inline?: boolean;
 }
 
-export default function Comments({ videoId, isOpen, onClose }: CommentsProps) {
+export default function Comments({ videoId, isOpen, onClose, inline = false }: CommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
@@ -109,20 +110,33 @@ export default function Comments({ videoId, isOpen, onClose }: CommentsProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-lg transform transition-transform duration-300 ease-in-out">
-      <div className="h-full flex flex-col">
+    <div className={inline ? "absolute inset-0 z-30 flex flex-col justify-end" : "fixed inset-0 z-50 flex flex-col justify-end"}>
+      {/* Backdrop */}
+      <button
+        onClick={onClose}
+        aria-label="إغلاق التعليقات"
+        title="إغلاق التعليقات"
+        className={inline ? "absolute inset-0 bg-black/40" : "absolute inset-0 bg-black/60"}
+      />
+
+      {/* Bottom Sheet Panel */}
+      <div className={`relative z-10 w-full ${inline ? 'max-h-[70%]' : 'max-h-[80vh]'} bg-white rounded-t-2xl shadow-xl overflow-hidden`}>
         {/* Header */}
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-xl font-bold">التعليقات</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+        <div className="p-4 border-b flex items-center justify-between">
+          <div className="mx-auto w-12 h-1.5 bg-gray-300 rounded-full" />
+          <button onClick={onClose} aria-label="إغلاق" title="إغلاق" className="text-gray-500 hover:text-gray-700">
             ✕
           </button>
         </div>
 
+        <div className="px-4 pb-2">
+          <h2 className="text-lg font-bold">التعليقات</h2>
+        </div>
+
         {/* Comments List */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
           {loading ? (
-            <div className="flex justify-center items-center h-full">
+            <div className="flex justify-center items-center py-10">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : comments.length === 0 ? (
@@ -132,7 +146,7 @@ export default function Comments({ videoId, isOpen, onClose }: CommentsProps) {
           ) : (
             comments.map((comment) => (
               <div key={comment.id} className="mb-4">
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 space-x-reverse">
                   <img
                     src={comment.userImage}
                     alt={comment.userName}
@@ -144,7 +158,7 @@ export default function Comments({ videoId, isOpen, onClose }: CommentsProps) {
                       <p className="text-sm">{comment.text}</p>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      {comment.createdAt?.toDate().toLocaleDateString('ar-SA')}
+                      {comment.createdAt?.toDate?.() ? comment.createdAt.toDate().toLocaleDateString('ar-SA') : ''}
                     </p>
                   </div>
                 </div>
@@ -154,18 +168,20 @@ export default function Comments({ videoId, isOpen, onClose }: CommentsProps) {
         </div>
 
         {/* Comment Input */}
-        <form onSubmit={handleSubmitComment} className="p-4 border-t">
-          <div className="flex items-center space-x-2">
+        <form onSubmit={handleSubmitComment} className="p-4 border-t bg-white">
+          <div className="flex items-center space-x-2 space-x-reverse">
             <input
               type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="اكتب تعليقاً..."
-              className="flex-1 p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex-1 p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <button
               type="submit"
               disabled={!newComment.trim()}
+              aria-label="إرسال التعليق"
+              title="إرسال التعليق"
               className="p-2 text-primary hover:text-primary-dark disabled:opacity-50"
             >
               <Send className="w-6 h-6" />

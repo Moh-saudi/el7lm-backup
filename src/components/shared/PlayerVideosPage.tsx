@@ -129,6 +129,7 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
   
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const sentViewNotificationsRef = useRef<Set<string>>(new Set());
   const { user } = useAuth();
   const router = useRouter();
 
@@ -397,6 +398,7 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
     
     if (newIndex !== currentVideoIndex && newIndex >= 0 && newIndex < filteredVideos.length) {
       setCurrentVideoIndex(newIndex);
+      setSelectedVideoId(null);
       
       // تشغيل الفيديو الحالي وإيقاف الآخرين
       videoRefs.current.forEach((ref, idx) => {
@@ -420,6 +422,31 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
       }
     }
   }, [currentVideoIndex, filteredVideos]);
+
+  // إرسال إشعار مشاهدة مرة لكل فيديو في الجلسة
+  useEffect(() => {
+    const current = filteredVideos[currentVideoIndex];
+    if (!current || !user) return;
+    if (sentViewNotificationsRef.current.has(current.id)) return;
+    (async () => {
+      try {
+        await fetch('/api/notifications/interaction', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'video_view',
+            profileOwnerId: current.playerId,
+            viewerId: user.uid,
+            viewerName: user.displayName || user.email || 'مستخدم',
+            viewerType: 'user',
+            viewerAccountType: 'player',
+            videoId: current.id
+          })
+        });
+        sentViewNotificationsRef.current.add(current.id);
+      } catch {}
+    })();
+  }, [currentVideoIndex, filteredVideos, user]);
 
   const handleLike = async (videoId: string) => {
     if (!user) return;
@@ -664,6 +691,8 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
               className={`p-3 text-white rounded-full backdrop-blur-md border border-white/20 shadow-lg transition-all ${
                 muted ? 'bg-red-500/80 hover:bg-red-600/80' : 'bg-black/60 hover:bg-black/70'
               }`}
+              aria-label={muted ? 'تشغيل الصوت' : 'كتم الصوت'}
+              title={muted ? 'تشغيل الصوت' : 'كتم الصوت'}
             >
               {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
             </button>
@@ -997,6 +1026,8 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.2 }}
                     onClick={togglePlayPause}
+                    aria-label={playing ? 'إيقاف مؤقت' : 'تشغيل'}
+                    title={playing ? 'إيقاف مؤقت' : 'تشغيل'}
                     className="absolute inset-0 flex items-center justify-center"
                   >
                     <div className="p-4 bg-black/50 rounded-full">
@@ -1017,6 +1048,8 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
               <div className="relative">
                 <button
                   onClick={() => safeNavigate(router, `/dashboard/shared/player-profile/${video.playerId}`)}
+                  aria-label="فتح ملف اللاعب"
+                  title="فتح ملف اللاعب"
                   className="group"
                 >
                   <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden group-hover:border-cyan-400 transition-colors">
@@ -1030,6 +1063,8 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
                 {!following.includes(video.playerId) && (
                   <button
                     onClick={() => handleFollow(video.playerId)}
+                    aria-label="متابعة اللاعب"
+                    title="متابعة اللاعب"
                     className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                   >
                     <UserPlus className="w-3 h-3 text-white" />
@@ -1040,6 +1075,8 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
               {/* Like Button */}
               <button
                 onClick={() => handleLike(video.id)}
+                aria-label="إعجاب بالفيديو"
+                title="إعجاب بالفيديو"
                 className="flex flex-col items-center space-y-1"
               >
                 <div className={`p-3 rounded-full ${likedVideos.includes(video.id) ? 'bg-red-500' : 'bg-black/30'} backdrop-blur-sm`}>
@@ -1047,27 +1084,27 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
                     className={`w-6 h-6 ${likedVideos.includes(video.id) ? 'text-white fill-current' : 'text-white'}`} 
                   />
                 </div>
-                <span className="text-white text-xs font-medium">
-                  {video.likes > 0 ? (video.likes > 999 ? `${(video.likes/1000).toFixed(1)}K` : video.likes) : ''}
-                </span>
+                <span className="text-white text-xs font-medium">{video.likes ?? 0}</span>
               </button>
 
               {/* Comment Button */}
               <button
                 onClick={() => setSelectedVideoId(video.id)}
+                aria-label="عرض التعليقات"
+                title="عرض التعليقات"
                 className="flex flex-col items-center space-y-1"
               >
                 <div className="p-3 rounded-full bg-black/30 backdrop-blur-sm">
                   <MessageCircle className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-white text-xs font-medium">
-                  {video.comments > 0 ? (video.comments > 999 ? `${(video.comments/1000).toFixed(1)}K` : video.comments) : ''}
-                </span>
+                <span className="text-white text-xs font-medium">{video.comments ?? 0}</span>
               </button>
 
               {/* Save Button */}
               <button
                 onClick={() => handleSave(video.id)}
+                aria-label="حفظ الفيديو"
+                title="حفظ الفيديو"
                 className="flex flex-col items-center space-y-1"
               >
                 <div className={`p-3 rounded-full ${savedVideos.includes(video.id) ? 'bg-yellow-500' : 'bg-black/30'} backdrop-blur-sm`}>
@@ -1080,18 +1117,18 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
               {/* Share Button */}
               <button
                 onClick={() => handleShare(video.id)}
+                aria-label="مشاركة الفيديو"
+                title="مشاركة الفيديو"
                 className="flex flex-col items-center space-y-1"
               >
                 <div className="p-3 rounded-full bg-black/30 backdrop-blur-sm">
                   <Share2 className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-white text-xs font-medium">
-                  {video.shares > 0 ? (video.shares > 999 ? `${(video.shares/1000).toFixed(1)}K` : video.shares) : ''}
-                </span>
+                <span className="text-white text-xs font-medium">{video.shares ?? 0}</span>
               </button>
 
               {/* More Options */}
-              <button className="p-3 rounded-full bg-black/30 backdrop-blur-sm">
+              <button aria-label="خيارات إضافية" title="خيارات إضافية" className="p-3 rounded-full bg-black/30 backdrop-blur-sm">
                 <MoreHorizontal className="w-6 h-6 text-white" />
               </button>
             </div>
@@ -1160,6 +1197,8 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
               <button
                 onClick={() => navigateVideo('up')}
                 disabled={currentVideoIndex === 0}
+                aria-label="الفيديو السابق"
+                title="الفيديو السابق"
                 className="p-3 rounded-full bg-black/30 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ArrowUp className="w-6 h-6 text-white" />
@@ -1167,6 +1206,8 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
               <button
                 onClick={() => navigateVideo('down')}
                 disabled={currentVideoIndex === filteredVideos.length - 1}
+                aria-label="الفيديو التالي"
+                title="الفيديو التالي"
                 className="p-3 rounded-full bg-black/30 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ArrowDown className="w-6 h-6 text-white" />
@@ -1176,12 +1217,23 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
         ))}
       </div>
 
-      {/* Comments Modal */}
-      <Comments
-        videoId={selectedVideoId || ''}
-        isOpen={!!selectedVideoId}
-        onClose={() => setSelectedVideoId(null)}
-      />
+      {/* Comments Inline */}
+      {selectedVideoId && (
+        <div className="pointer-events-none">
+          <div className="absolute inset-0 z-40 flex items-end justify-center pointer-events-none">
+            <div className="w-full h-full relative">
+              <div className="absolute inset-0 pointer-events-auto">
+                <Comments
+                  videoId={selectedVideoId}
+                  isOpen={true}
+                  onClose={() => setSelectedVideoId(null)}
+                  inline={true}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* No Videos State */}
       {filteredVideos.length === 0 && !loading && (
