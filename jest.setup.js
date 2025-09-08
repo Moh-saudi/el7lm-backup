@@ -1,175 +1,80 @@
-// Jest DOM extensions
-import '@testing-library/jest-dom';
+// Optional: configure or set up a testing framework before each test.
+// If you delete this file, remove `setupFilesAfterEnv` from `jest.config.js`
 
-// Mock Next.js modules
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
-    pathname: '/',
-    query: {},
-    asPath: '/',
-  }),
-  useSearchParams: () => new URLSearchParams(),
-  usePathname: () => '/',
-}));
+// Used for __tests__/testing-library.js
+// Learn more: https://github.com/testing-library/jest-dom
+import '@testing-library/jest-dom'
 
-jest.mock('next/image', () => ({
-  __esModule: true,
-  default: (props) => {
-    return React.createElement('img', props);
+// Mock Next.js router
+jest.mock('next/router', () => ({
+  useRouter() {
+    return {
+      route: '/',
+      pathname: '/',
+      query: {},
+      asPath: '/',
+      push: jest.fn(),
+      pop: jest.fn(),
+      reload: jest.fn(),
+      back: jest.fn(),
+      prefetch: jest.fn().mockResolvedValue(undefined),
+      beforePopState: jest.fn(),
+      events: {
+        on: jest.fn(),
+        off: jest.fn(),
+        emit: jest.fn(),
+      },
+      isFallback: false,
+    }
   },
-}));
+}))
+
+// Mock Next.js navigation
+jest.mock('next/navigation', () => ({
+  useRouter() {
+    return {
+      push: jest.fn(),
+      replace: jest.fn(),
+      prefetch: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+      refresh: jest.fn(),
+    }
+  },
+  useSearchParams() {
+    return new URLSearchParams()
+  },
+  usePathname() {
+    return '/'
+  },
+}))
 
 // Mock Firebase
-jest.mock('@/lib/firebase/config', () => ({
-  db: {},
-  auth: {},
-  storage: {},
-}));
+jest.mock('firebase/app', () => ({
+  initializeApp: jest.fn(),
+}))
 
-// Mock Supabase
-jest.mock('@/lib/supabase/client', () => ({
-  supabase: {
-    auth: {
-      getUser: jest.fn(),
-      signOut: jest.fn(),
-    },
-    storage: {
-      from: jest.fn().mockReturnThis(),
-      upload: jest.fn(),
-      getPublicUrl: jest.fn(),
-    },
-  },
-}));
+jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(),
+  collection: jest.fn(),
+  doc: jest.fn(),
+  getDocs: jest.fn(),
+  getDoc: jest.fn(),
+  addDoc: jest.fn(),
+  updateDoc: jest.fn(),
+  deleteDoc: jest.fn(),
+  query: jest.fn(),
+  where: jest.fn(),
+  orderBy: jest.fn(),
+  limit: jest.fn(),
+  onSnapshot: jest.fn(),
+  serverTimestamp: jest.fn(),
+}))
 
-// Mock Service Worker
-Object.defineProperty(window.navigator, 'serviceWorker', {
-  value: {
-    register: jest.fn(() => Promise.resolve()),
-    ready: Promise.resolve(),
-  },
-  writable: true,
-});
-
-// Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  observe() {
-    return null;
-  }
-  disconnect() {
-    return null;
-  }
-  unobserve() {
-    return null;
-  }
-};
-
-// Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
-  constructor() {}
-  observe() {
-    return null;
-  }
-  disconnect() {
-    return null;
-  }
-  unobserve() {
-    return null;
-  }
-};
-
-// Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
-
-// Mock localStorage
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-};
-global.localStorage = localStorageMock;
-
-// Mock sessionStorage
-const sessionStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-};
-global.sessionStorage = sessionStorageMock;
-
-// Mock URL constructor
-global.URL.createObjectURL = jest.fn();
-
-// Global test utilities
-global.waitFor = (callback, options = {}) => {
-  return new Promise((resolve, reject) => {
-    const timeout = options.timeout || 1000;
-    const interval = options.interval || 50;
-    let elapsed = 0;
-
-    const check = () => {
-      try {
-        const result = callback();
-        if (result) {
-          resolve(result);
-        } else if (elapsed >= timeout) {
-          reject(new Error('Timeout waiting for condition'));
-        } else {
-          elapsed += interval;
-          setTimeout(check, interval);
-        }
-      } catch (error) {
-        if (elapsed >= timeout) {
-          reject(error);
-        } else {
-          elapsed += interval;
-          setTimeout(check, interval);
-        }
-      }
-    };
-
-    check();
-  });
-};
-
-// Console suppression for tests
-const originalError = console.error;
-beforeAll(() => {
-  console.error = (...args) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render is no longer supported')
-    ) {
-      return;
-    }
-    originalError.call(console, ...args);
-  };
-});
-
-afterAll(() => {
-  console.error = originalError;
-});
-
-// Clean up after each test
-afterEach(() => {
-  jest.clearAllMocks();
-  localStorage.clear();
-  sessionStorage.clear();
-}); 
+// Mock environment variables
+process.env.NEXT_PUBLIC_FIREBASE_API_KEY = 'test-api-key'
+process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test.firebaseapp.com'
+process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'test-project'
+process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test.appspot.com'
+process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789'
+process.env.NEXT_PUBLIC_FIREBASE_APP_ID = 'test-app-id'

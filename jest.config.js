@@ -1,74 +1,31 @@
-/** @type {import('jest').Config} */
-const nextJest = require('next/jest');
+const nextJest = require('next/jest')
 
 const createJestConfig = nextJest({
-  // مسار ملف Next.js الخاص بك
+  // Provide the path to your Next.js app to load next.config.js and .env files
   dir: './',
-});
+})
 
-// إعدادات Jest المخصصة
+// Add any custom config to be passed to Jest
 const customJestConfig = {
-  // بيئة الاختبار
-  testEnvironment: 'jsdom',
-  
-  // إعداد الملفات قبل تشغيل الاختبارات
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  
-  // أنماط الملفات للاختبار
+  testEnvironment: 'jest-environment-jsdom',
+  collectCoverageFrom: [
+    'src/**/*.{js,jsx,ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/**/*.stories.{js,jsx,ts,tsx}',
+    '!src/**/*.test.{js,jsx,ts,tsx}',
+    '!src/**/*.spec.{js,jsx,ts,tsx}',
+  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
   testMatch: [
-    '**/__tests__/**/*.(ts|tsx|js)',
-    '**/*.(test|spec).(ts|tsx|js)'
+    '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/*.{test,spec}.{js,jsx,ts,tsx}',
   ],
-  
-  // الملفات المستبعدة
-  testPathIgnorePatterns: [
-    '<rootDir>/.next/',
-    '<rootDir>/node_modules/',
-    '<rootDir>/out/',
-    '<rootDir>/dist/'
-  ],
-  
-  // تجاهل تحويل node_modules عدا المكتبات التي تحتاج تحويل
-  transformIgnorePatterns: [
-    '/node_modules/(?!(.*\\.mjs$|@radix-ui|lucide-react|@supabase))'
-  ],
-  
-  // تعيين المسارات والـ Mock للملفات
-  moduleNameMapper: {
+  moduleNameMapping: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@/components/(.*)$': '<rootDir>/src/components/$1',
-    '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
-    '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
-    '^@/types/(.*)$': '<rootDir>/src/types/$1',
-    '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
-    '^@/app/(.*)$': '<rootDir>/src/app/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/__mocks__/fileMock.js',
   },
-  
-  // إعدادات التغطية (مُعطلة مؤقتاً لتبسيط أول تشغيل)
-  collectCoverage: false,
-  collectCoverageFrom: [],
-  
-  // متغيرات البيئة للاختبار
-  testEnvironmentOptions: {
-    url: 'http://localhost:3000',
-  },
-  
-  // إعدادات إضافية
-  verbose: true,
-  clearMocks: true,
-  restoreMocks: true,
-  
-  // Timeout للاختبارات البطيئة
-  testTimeout: 10000,
-  
-  // إعدادات المراقبة
-  // watchPlugins معتمدة على حزم خارجية غير متوافقة حالياً، لذا تُزال لتبسيط الإعداد
-  
-  // تعيين متغيرات البيئة للاختبار
-  setupFiles: ['<rootDir>/jest.env.js'],
-};
+}
 
-// دمج الإعدادات مع Next.js
-module.exports = createJestConfig(customJestConfig); 
+// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
+module.exports = createJestConfig(customJestConfig)
