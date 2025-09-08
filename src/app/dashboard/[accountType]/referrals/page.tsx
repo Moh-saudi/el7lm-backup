@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { organizationReferralService } from '@/lib/organization/organization-referral-service';
+import { OrganizationReferral, PlayerJoinRequest } from '@/types/organization-referral';
 import { 
   UserPlus, 
   Copy, 
@@ -32,7 +34,8 @@ import {
   Building,
   GraduationCap,
   Briefcase,
-  Shield
+  Shield,
+  Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -116,7 +119,7 @@ const ACCOUNT_TYPE_INFO = {
 };
 
 export default function SharedReferralsPage() {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const params = useParams();
   const accountType = params.accountType as string;
   
@@ -125,6 +128,9 @@ export default function SharedReferralsPage() {
   const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
   const [referralCode, setReferralCode] = useState('');
   const [showQR, setShowQR] = useState(false);
+  // Organization referrals & join requests (for non-player accounts)
+  const [organizationReferrals, setOrganizationReferrals] = useState<OrganizationReferral[]>([]);
+  const [joinRequests, setJoinRequests] = useState<PlayerJoinRequest[]>([]);
 
   const accountInfo = ACCOUNT_TYPE_INFO[accountType as keyof typeof ACCOUNT_TYPE_INFO] || ACCOUNT_TYPE_INFO.player;
   const IconComponent = accountInfo.icon;
@@ -132,6 +138,10 @@ export default function SharedReferralsPage() {
   useEffect(() => {
     if (user?.uid) {
       loadPlayerData();
+      if (accountType !== 'player') {
+        loadOrganizationReferrals();
+        loadJoinRequests();
+      }
     }
   }, [user]);
 
@@ -159,6 +169,101 @@ export default function SharedReferralsPage() {
       toast.error('حدث خطأ في تحميل البيانات');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Organization: load referrals
+  const loadOrganizationReferrals = async () => {
+    try {
+      const referrals = await organizationReferralService.getOrganizationReferrals(user!.uid);
+      setOrganizationReferrals(referrals);
+    } catch (err) {
+      console.error('خطأ في تحميل أكواد الإحالة:', err);
+    }
+  };
+
+  // Organization: load join requests
+  const loadJoinRequests = async () => {
+    try {
+      const requests = await organizationReferralService.getOrganizationJoinRequests(user!.uid);
+      setJoinRequests(requests);
+    } catch (err) {
+      console.error('خطأ في تحميل طلبات الانضمام:', err);
+    }
+  };
+
+  // Organization: create new referral
+  const createNewReferralCode = async () => {
+    try {
+      await organizationReferralService.createOrganizationReferral(
+        user!.uid,
+        (userData as any)?.accountType,
+        (userData as any)?.full_name || 'المنظمة'
+      );
+      toast.success('تم إنشاء كود إحالة جديد');
+      loadOrganizationReferrals();
+    } catch (err) {
+      console.error('فشل في إنشاء كود الإحالة', err);
+      toast.error('فشل في إنشاء كود الإحالة');
+    }
+  };
+
+  const updateReferral = async (ref: OrganizationReferral, updates: Partial<OrganizationReferral>) => {
+    try {
+      const res = await fetch('/api/organization-referrals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_referral',
+          referralId: ref.id,
+          organizationId: user!.uid,
+          updates: {
+            referralCode: updates.referralCode,
+            isActive: updates.isActive,
+            maxUsage: updates.maxUsage,
+            description: updates.description,
+            expiresAt: updates.expiresAt as any
+          }
+        })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'فشل التحديث');
+      toast.success('تم تحديث كود الإحالة');
+      await loadOrganizationReferrals();
+    } catch (e) {
+      console.error(e);
+      toast.error('تعذر تحديث كود الإحالة');
+    }
+  };
+
+  const approveJoin = async (requestId: string) => {
+    try {
+      await organizationReferralService.approveJoinRequest(
+        requestId,
+        user!.uid,
+        (userData as any)?.full_name || 'المنظمة'
+      );
+      toast.success('تم قبول اللاعب بنجاح');
+      await loadJoinRequests();
+    } catch (err) {
+      console.error('فشل في قبول اللاعب', err);
+      toast.error('فشل في قبول اللاعب');
+    }
+  };
+
+  const rejectJoin = async (requestId: string) => {
+    try {
+      await organizationReferralService.rejectJoinRequest(
+        requestId,
+        user!.uid,
+        (userData as any)?.full_name || 'المنظمة',
+        'تم الرفض'
+      );
+      toast.success('تم رفض الطلب');
+      await loadJoinRequests();
+    } catch (err) {
+      console.error('فشل في رفض الطلب', err);
+      toast.error('فشل في رفض الطلب');
     }
   };
 
@@ -190,6 +295,29 @@ export default function SharedReferralsPage() {
 
   const getEarningsInEGP = (dollars: number) => {
     return (dollars * POINTS_CONVERSION.DOLLAR_TO_EGP).toFixed(2);
+  };
+
+  const formatDateSafe = (value: any): string => {
+    try {
+      if (!value) return 'غير محدد';
+      if (typeof value === 'object' && typeof value.toDate === 'function') {
+        return value.toDate().toLocaleDateString('ar');
+      }
+      const d = new Date(value);
+      if (isNaN(d.getTime())) return 'غير محدد';
+      return d.toLocaleDateString('ar');
+    } catch {
+      return 'غير محدد';
+    }
+  };
+
+  const shareOrgLinkWhatsApp = (inviteLink: string, orgName?: string) => {
+    try {
+      const text = encodeURIComponent(`انضم إلى ${orgName || 'المنظمة'} عبر هذا الرابط: ${inviteLink}`);
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    } catch (e) {
+      toast.error('تعذر فتح واتساب');
+    }
   };
 
   const getNextBadge = () => {
@@ -281,6 +409,133 @@ export default function SharedReferralsPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* قسم أكواد الإحالة للمنظمة وطلبات الانضمام - يظهر لغير اللاعبين */}
+      {accountType !== 'player' && (
+        <div className="space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold">أكواد الإحالة</h2>
+              <Button onClick={createNewReferralCode} className="bg-purple-600 hover:bg-purple-700 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                إنشاء كود جديد
+              </Button>
+            </div>
+            <div className="grid gap-4">
+              {organizationReferrals.map((referral) => (
+                <div key={referral.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        defaultValue={referral.referralCode}
+                        onBlur={(e) => {
+                          const val = e.target.value.trim();
+                          if (val && val !== referral.referralCode) {
+                            updateReferral(referral, { referralCode: val });
+                          }
+                        }}
+                        className="font-mono text-lg px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        title="تغيير كود الإحالة"
+                      />
+                      <Badge variant="outline" className="text-xs">استخدم {referral.currentUsage} / {referral.maxUsage ?? '∞'}</Badge>
+                    </div>
+                    {referral.isActive ? (
+                      <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-200">
+                        نشط
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-gray-100 text-gray-600 border border-gray-200">
+                        غير نشط
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600 mb-2">{referral.description}</p>
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs">الحد الأقصى:</label>
+                      <input
+                        type="number"
+                        min={0}
+                        defaultValue={referral.maxUsage ?? 0}
+                        onBlur={(e) => {
+                          const max = parseInt(e.target.value || '0');
+                          if ((referral.maxUsage ?? 0) !== max) updateReferral(referral, { maxUsage: max });
+                        }}
+                        className="w-24 px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        title="تحديد حد الاستخدام"
+                      />
+                      <Button
+                        size="sm"
+                        className={`${referral.isActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                        onClick={() => updateReferral(referral, { isActive: !referral.isActive })}
+                      >
+                        {referral.isActive ? 'تعطيل' : 'تفعيل'}
+                      </Button>
+                    </div>
+                    <span>تم الإنشاء: {formatDateSafe(referral.createdAt)}</span>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      onClick={() => navigator.clipboard.writeText(referral.referralCode).then(() => toast.success('تم نسخ الكود'))}
+                    >
+                      نسخ الكود
+                    </Button>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      onClick={() => navigator.clipboard.writeText(referral.inviteLink).then(() => toast.success('تم نسخ الرابط'))}
+                    >
+                      نسخ الرابط
+                    </Button>
+                    <Button 
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => shareOrgLinkWhatsApp(referral.inviteLink, referral.organizationName)}
+                    >
+                      مشاركة واتساب
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {organizationReferrals.length === 0 && (
+                <p className="text-center text-gray-500 py-8">لا توجد أكواد إحالة حالياً</p>
+              )}
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h2 className="text-xl font-bold mb-6">طلبات الانضمام</h2>
+            <div className="space-y-4">
+              {joinRequests.filter(r => r.status === 'pending').map((request) => (
+                <div key={request.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold">{request.playerName}</h3>
+                    <Badge className="bg-amber-100 text-amber-700 border border-amber-200">في الانتظار</Badge>
+                  </div>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p>📧 {request.playerEmail}</p>
+                    {request.playerPhone && <p>📱 {request.playerPhone}</p>}
+                    {request.playerData?.position && <p>⚽ المركز: {request.playerData.position}</p>}
+                    {request.playerData?.age && <p>🎂 العمر: {request.playerData.age}</p>}
+                    <p>📅 طلب الانضمام: {new Date(request.requestedAt as any).toLocaleDateString('ar')}</p>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => approveJoin(request.id)}>✅ قبول</Button>
+                    <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white" onClick={() => rejectJoin(request.id)}>❌ رفض</Button>
+                  </div>
+                </div>
+              ))}
+              {joinRequests.filter(r => r.status === 'pending').length === 0 && (
+                <p className="text-center text-gray-500 py-8">لا توجد طلبات انضمام في الانتظار</p>
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* كود الإحالة */}
       <motion.div

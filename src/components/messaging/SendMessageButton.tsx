@@ -674,7 +674,7 @@ const SendMessageButton: React.FC<SendMessageButtonProps> = ({
       </DialogTrigger>
       
       <DialogContent
-        className="sm:max-w-[560px]"
+        className="sm:max-w-[600px] rounded-xl"
         dir="rtl"
         onEscapeKeyDown={(e) => {
           if (sending) e.preventDefault();
@@ -687,12 +687,12 @@ const SendMessageButton: React.FC<SendMessageButtonProps> = ({
         }}
       >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <MessageSquare className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-3 text-purple-800 text-lg">
+            <MessageSquare className="h-5 w-5 text-purple-700" />
             إرسال رسالة جديدة
           </DialogTitle>
-          <DialogDescription>
-            إرسال رسالة إلى {targetUserName}
+          <DialogDescription className="text-purple-600">
+            إلى {targetUserName}
           </DialogDescription>
         </DialogHeader>
 
@@ -704,20 +704,20 @@ const SendMessageButton: React.FC<SendMessageButtonProps> = ({
           }
           await sendDirectMessage();
         }}>
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* معلومات المستقبل */}
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <div className="p-2 bg-white rounded-full">
-                <Icon className={`h-5 w-5 ${USER_TYPES[targetUserType]?.color}`} />
+            <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-xl border border-purple-200">
+              <div className="p-2 bg-white rounded-full border border-purple-100">
+                <Icon className={`h-5 w-5 ${USER_TYPES[targetUserType]?.color || 'text-purple-600'}`} />
               </div>
               <div className="flex-1">
-                <h4 className="font-medium">{targetUserName}</h4>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <h4 className="font-semibold text-purple-900">{targetUserName}</h4>
+                <div className="flex items-center gap-2 text-sm text-purple-700">
                   <span>{USER_TYPES[targetUserType]?.name}</span>
                   {organizationName && (
                     <>
                       <span>•</span>
-                      <span className="text-blue-600">{organizationName}</span>
+                      <span className="text-purple-700">{organizationName}</span>
                     </>
                   )}
                 </div>
@@ -726,19 +726,17 @@ const SendMessageButton: React.FC<SendMessageButtonProps> = ({
 
             {/* قوالب سريعة */}
             <div className="space-y-2">
-              <Label>قوالب جاهزة</Label>
-              <div className="flex flex-wrap gap-2">
+              <Label className="text-purple-800 font-medium">قوالب جاهزة</Label>
+              <div className="grid grid-cols-2 gap-2">
                 {MESSAGE_TEMPLATES.map(tpl => (
                   <Button
-                    type="button"
                     key={tpl.id}
+                    type="button"
                     variant="outline"
                     size="sm"
-                    className="rounded-full"
+                    className="rounded-lg border-purple-300 text-purple-700 hover:bg-purple-50 text-xs"
                     onClick={() => applyTemplate(tpl.id)}
                     disabled={sending}
-                    title={`تطبيق: ${tpl.label}`}
-                    aria-label={`تطبيق قالب ${tpl.label}`}
                   >
                     {tpl.label}
                   </Button>
@@ -748,19 +746,20 @@ const SendMessageButton: React.FC<SendMessageButtonProps> = ({
 
             {/* موضوع الرسالة */}
             <div className="space-y-2">
-              <Label htmlFor="subject">موضوع الرسالة (اختياري)</Label>
+              <Label htmlFor="subject" className="text-purple-800 font-medium">موضوع الرسالة (اختياري)</Label>
               <Input
                 id="subject"
                 placeholder="مثال: استفسار عن الانضمام، عرض تعاون..."
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 maxLength={100}
+                className="focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
             {/* نص الرسالة */}
             <div className="space-y-2">
-              <Label htmlFor="message">الرسالة *</Label>
+              <Label htmlFor="message" className="text-purple-800 font-medium">الرسالة *</Label>
               <Textarea
                 id="message"
                 name="message"
@@ -770,6 +769,7 @@ const SendMessageButton: React.FC<SendMessageButtonProps> = ({
                 rows={6}
                 maxLength={1000}
                 required
+                className="focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
               />
               <div className="text-xs text-gray-500 text-left">
                 {message.length}/1000
@@ -777,36 +777,41 @@ const SendMessageButton: React.FC<SendMessageButtonProps> = ({
             </div>
 
             {/* تضمين بيانات التواصل */}
-            <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-md">
+            <div className="flex items-center gap-3 bg-purple-50 p-3 rounded-lg border border-purple-100">
               <input
                 id="includeContact"
                 type="checkbox"
-                className="rounded border-gray-300 text-blue-600"
+                className="rounded border-purple-300 text-purple-600 focus:ring-purple-500"
                 checked={includeContactInfo}
                 onChange={(e) => setIncludeContactInfo(e.target.checked)}
-                aria-label="تضمين بيانات التواصل"
-                title="تضمين بيانات التواصل"
                 aria-labelledby="label-includeContact"
               />
-              <Label id="label-includeContact" htmlFor="includeContact" className="cursor-pointer">
+              <Label id="label-includeContact" htmlFor="includeContact" className="cursor-pointer text-purple-900">
                 إرفاق بيانات التواصل تلقائياً (الهاتف/البريد/المدينة/الجنسية)
               </Label>
             </div>
 
+            {redirectToMessages && (
+              <div className="text-sm text-purple-800 bg-purple-50 p-3 rounded-lg border border-purple-200">
+                💡 سيتم توجيهك لصفحة الرسائل بعد إرسال الرسالة لمتابعة المحادثة
+              </div>
+            )}
+
             {/* أزرار التحكم */}
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex items-center justify-end gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsOpen(false)}
                 disabled={sending}
+                className="border-purple-200 text-purple-700 hover:bg-purple-50"
               >
                 إلغاء
               </Button>
               <Button
                 type="submit"
                 disabled={!message.trim() || sending}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
               >
                 {sending ? (
                   <div className="flex items-center gap-2">
@@ -821,13 +826,6 @@ const SendMessageButton: React.FC<SendMessageButtonProps> = ({
                 )}
               </Button>
             </div>
-
-            {/* رسالة تنبيه */}
-            {redirectToMessages && (
-              <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                💡 سيتم توجيهك لصفحة الرسائل بعد إرسال الرسالة لمتابعة المحادثة
-              </div>
-            )}
           </div>
         </form>
       </DialogContent>

@@ -30,6 +30,8 @@ export interface Referral {
   referrerId: string;        // اللاعب المحيل
   referredId: string;        // اللاعب الجديد
   referralCode: string;      // كود الإحالة
+  referralType?: 'player' | 'organization';
+  organizationType?: 'club' | 'academy' | 'trainer' | 'agent';
   status: 'pending' | 'completed' | 'expired';
   createdAt: DateOrTimestamp;
   completedAt?: DateOrTimestamp;

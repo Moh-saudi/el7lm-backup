@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
 // دالة إرسال OTP عبر BeOn API الجديد
 async function sendBeOnOTP(phoneNumber: string, name: string, type: string = 'whatsapp') {
   try {
-    const BEON_TOKEN = process.env.BEON_SMS_TOKEN || process.env.BEON_WHATSAPP_TOKEN;
+    const BEON_TOKEN = process.env.BEON_WHATSAPP_TOKEN || 'vSCuMzZwLjDxzR882YphwEgW';
 
     if (!BEON_TOKEN) {
       console.error('❌ No BeOn token available');
@@ -144,7 +144,7 @@ async function sendBeOnOTP(phoneNumber: string, name: string, type: string = 'wh
       lang: 'ar'
     });
 
-    const response = await fetch('https://beon.chat/api/send/message/otp', {
+    const response = await fetch('https://v3.api.beon.chat/api/v3/messages/otp', {
       method: 'POST',
       headers: {
         'beon-token': BEON_TOKEN

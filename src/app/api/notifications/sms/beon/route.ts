@@ -88,11 +88,10 @@ export async function POST(request: NextRequest) {
 // دالة إرسال OTP عبر BeOn SMS
 async function sendBeOnSMSOTP(phoneNumber: string, name: string, otp_length: number, lang: string, reference: string, custom_code: string, type: string) {
   try {
-    // استخدام أول token متاح
-    const BEON_SMS_TOKEN = process.env.BEON_SMS_TOKEN || 
-                           process.env.BEON_SMS_TOKEN_REGULAR || 
-                           process.env.BEON_SMS_TOKEN_TEMPLATE || 
-                           process.env.BEON_WHATSAPP_TOKEN;
+    // استخدام Token الصحيح للـ OTP
+    const BEON_SMS_TOKEN = process.env.BEON_OTP_TOKEN || 
+                           process.env.BEON_SMS_TEMPLATE_TOKEN || 
+                           'SPb4sbemr5bwb7sjzCqTcL';
 
     if (!BEON_SMS_TOKEN) {
       console.error('❌ No BeOn SMS token available');
@@ -101,26 +100,29 @@ async function sendBeOnSMSOTP(phoneNumber: string, name: string, otp_length: num
 
     console.log('📱 Using BeOn token:', BEON_SMS_TOKEN.substring(0, 10) + '...');
 
-    const requestBody = {
+    // استخدام FormData مثل WhatsApp
+    const formData = new FormData();
+    formData.append('phoneNumber', phoneNumber);
+    formData.append('name', name || 'El7lm User');
+    formData.append('type', type || 'sms');
+    formData.append('otp_length', otp_length.toString());
+    formData.append('lang', lang || 'ar');
+
+    console.log('📱 BeOn SMS request data:', {
       phoneNumber,
-      name,
-      type,
-      otp_length,
-      lang,
-      reference,
-      custom_code
-    };
+      name: name || 'El7lm User',
+      type: type || 'sms',
+      otp_length: otp_length.toString(),
+      lang: lang || 'ar'
+    });
+    console.log('📱 BeOn SMS endpoint: https://v3.api.beon.chat/api/v3/messages/otp');
 
-    console.log('📱 BeOn SMS request body:', requestBody);
-    console.log('📱 BeOn SMS endpoint: https://beon.chat/api/send/message/otp');
-
-    const response = await fetch('https://beon.chat/api/send/message/otp', {
+    const response = await fetch('https://v3.api.beon.chat/api/v3/messages/otp', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'beon-token': BEON_SMS_TOKEN
       },
-      body: JSON.stringify(requestBody)
+      body: formData
     });
 
     console.log('📱 BeOn SMS response status:', response.status);

@@ -20,6 +20,7 @@ import {
   Star,
   Trophy,
   Users,
+  UserPlus,
   Calendar,
   MapPin,
   Phone,
@@ -221,6 +222,12 @@ export default function EnhancedSidebar({ accountType = 'player' }: EnhancedSide
           color: 'text-green-400'
         },
         {
+          title: 'الإحالات',
+          icon: UserPlus,
+          href: '/dashboard/club/referrals',
+          color: 'text-purple-400'
+        },
+        {
           title: 'المباريات',
           icon: Trophy,
           href: '/dashboard/club/matches',
@@ -297,6 +304,12 @@ export default function EnhancedSidebar({ accountType = 'player' }: EnhancedSide
           icon: FileText,
           href: '/dashboard/admin/reports',
           color: 'text-orange-400'
+        },
+        {
+          title: 'Clarity Analytics',
+          icon: BarChart3,
+          href: '/dashboard/admin/clarity',
+          color: 'text-indigo-400'
         }
       ]
     };

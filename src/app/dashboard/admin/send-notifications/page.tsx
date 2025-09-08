@@ -440,13 +440,12 @@ export default function SendNotificationsPage() {
         // إرسال SMS إذا كان مفعلاً
         if (form.sendMethods.sms && targetUser.phone) {
           try {
-            await fetch('/api/notifications/sms/send', {
+            await fetch('/api/notifications/sms/bulk', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                phoneNumber: targetUser.phone,
-                message: `${form.title}\n\n${form.message}`,
-                type: 'notification'
+                phoneNumbers: [targetUser.phone],
+                message: `${form.title}\n\n${form.message}`
               })
             });
           } catch (error) {
@@ -457,15 +456,9 @@ export default function SendNotificationsPage() {
         // إرسال WhatsApp إذا كان مفعلاً
         if (form.sendMethods.whatsapp && targetUser.phone) {
           try {
-            await fetch('/api/notifications/whatsapp/send', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                phoneNumber: targetUser.phone,
-                message: `${form.title}\n\n${form.message}`,
-                type: 'notification'
-              })
-            });
+            // استخدام WhatsApp Web API (فتح WhatsApp في المتصفح)
+            const whatsappUrl = `https://wa.me/${targetUser.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`${form.title}\n\n${form.message}`)}`;
+            window.open(whatsappUrl, '_blank');
           } catch (error) {
             console.error('خطأ في إرسال WhatsApp:', error);
           }

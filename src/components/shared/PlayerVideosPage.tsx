@@ -245,6 +245,7 @@ export default function PlayerVideosPage({ accountType }: PlayerVideosPageProps)
       
       for (const playerDoc of playersSnapshot.docs) {
         const playerData = playerDoc.data();
+        if ((playerData as any)?.isDeleted) { continue; }
         const playerVideos = playerData.videos || [];
         
         if (playerVideos.length > 0) {

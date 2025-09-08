@@ -541,6 +541,14 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
             bgColor: 'bg-green-50'
           },
           {
+            id: 'club-referrals',
+            label: 'الإحالات',
+            icon: Users,
+            href: `/dashboard/club/referrals`,
+            color: 'text-pink-600',
+            bgColor: 'bg-pink-50'
+          },
+          {
             id: 'club-player-videos',
             label: 'فيديوهات اللاعبين',
             icon: Video,
@@ -646,6 +654,14 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
             href: `/dashboard/trainer/player-videos`,
             color: 'text-purple-600',
             bgColor: 'bg-purple-50'
+          },
+          {
+            id: 'trainer-referrals',
+            label: 'الإحالات',
+            icon: Users,
+            href: `/dashboard/trainer/referrals`,
+            color: 'text-pink-600',
+            bgColor: 'bg-pink-50'
           }
         ]
       });
@@ -681,6 +697,14 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
             href: `/dashboard/academy/player-videos`,
             color: 'text-purple-600',
             bgColor: 'bg-purple-50'
+          },
+          {
+            id: 'academy-referrals',
+            label: 'الإحالات',
+            icon: Users,
+            href: `/dashboard/academy/referrals`,
+            color: 'text-pink-600',
+            bgColor: 'bg-pink-50'
           }
         ]
       });
@@ -716,6 +740,14 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
             href: `/dashboard/agent/player-videos`,
             color: 'text-purple-600',
             bgColor: 'bg-purple-50'
+          },
+          {
+            id: 'agent-referrals',
+            label: 'الإحالات',
+            icon: Users,
+            href: `/dashboard/agent/referrals`,
+            color: 'text-pink-600',
+            bgColor: 'bg-pink-50'
           }
         ]
       });
@@ -816,6 +848,14 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
             href: `/dashboard/admin/reports`,
             color: 'text-blue-600',
             bgColor: 'bg-blue-50'
+          },
+          {
+            id: 'admin-clarity',
+            label: 'Clarity Analytics',
+            icon: BarChart3,
+            href: `/dashboard/admin/clarity`,
+            color: 'text-indigo-600',
+            bgColor: 'bg-indigo-50'
           },
           {
             id: 'admin-customer-management',
@@ -1114,7 +1154,7 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
             onClick={closeSidebar}
           />
         )}
@@ -1132,8 +1172,8 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-3 border-b border-white/20">
-            <div className="flex items-center gap-2">
+          <div className="flex justify-between items-center p-3 border-b border-white/20">
+            <div className="flex gap-2 items-center">
               <div className={`p-1.5 rounded-lg ${accountInfo.bgColor}`}>
                 <IconComponent className={`w-5 h-5 ${accountInfo.textColor}`} />
               </div>
@@ -1145,14 +1185,14 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
                     exit={{ opacity: 0, x: -20 }}
                     className="flex flex-col"
                   >
-                    <h2 className="text-white font-bold text-base">{accountInfo.title}</h2>
-                    <p className="text-white/70 text-xs">{accountInfo.subtitle}</p>
+                    <h2 className="text-base font-bold text-white">{accountInfo.title}</h2>
+                    <p className="text-xs text-white/70">{accountInfo.subtitle}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               {!isMobile && (
                 <Button
                   variant="ghost"
@@ -1178,7 +1218,7 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
 
           {/* User Profile */}
           <div className="p-3 border-b border-white/20">
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               <Avatar className="w-10 h-10 ring-2 ring-white/30">
                 <AvatarImage src={getUserAvatar() || '/default-avatar.png'} alt={getUserDisplayName()} />
                 <AvatarFallback className={`${accountInfo.bgColor} ${accountInfo.textColor} font-bold text-sm`}>
@@ -1194,8 +1234,8 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
                     exit={{ opacity: 0, x: -20 }}
                     className="flex-1 min-w-0"
                   >
-                    <h3 className="text-white font-semibold truncate text-sm">{getUserDisplayName()}</h3>
-                    <div className="flex items-center gap-1">
+                    <h3 className="text-sm font-semibold text-white truncate">{getUserDisplayName()}</h3>
+                    <div className="flex gap-1 items-center">
                       <Badge variant="secondary" className={`${accountInfo.bgColor} ${accountInfo.textColor} border-0 text-xs px-1.5 py-0.5`}>
                         {accountInfo.emoji} {accountInfo.subtitle}
                       </Badge>
@@ -1207,7 +1247,7 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-3">
+          <nav className="overflow-y-auto flex-1 py-3">
             <div className="px-3 space-y-1">
               {menuGroups.map((group, groupIndex) => {
                 const isGroupExpanded = expandedGroups.has(group.id);
@@ -1229,7 +1269,7 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
                         group.id === 'main' ? 'font-semibold' : 'font-medium'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex gap-2 items-center">
                         <GroupIcon className="w-3.5 h-3.5" />
                         <AnimatePresence>
                           {showText && (
@@ -1269,7 +1309,7 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
                           transition={{ duration: 0.3, ease: 'easeInOut' }}
                           className="overflow-hidden"
                         >
-                          <div className="space-y-1 pr-3">
+                          <div className="pr-3 space-y-1">
                             {group.items.map((item, itemIndex) => {
                               const isActive = activeItem === item.id;
                               const IconComponent = item.icon;
@@ -1286,7 +1326,7 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
                                     onClick={() => handleNavigation(item.href, item.id)}
                                     className={`w-full justify-start gap-2 h-8 px-2 transition-all duration-500 ease-out ${
                                       isActive
-                                        ? 'bg-white text-gray-900 shadow-lg'
+                                        ? 'text-gray-900 bg-white shadow-lg'
                                         : 'text-white hover:bg-white/20'
                                     }`}
                                   >
@@ -1336,7 +1376,7 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="w-full justify-start gap-2 h-10 px-3 text-white hover:bg-red-600/20 hover:text-red-200"
+              className="gap-2 justify-start px-3 w-full h-10 text-white hover:bg-red-600/20 hover:text-red-200"
             >
               <div className="p-1.5 rounded-md bg-red-600/20">
                 <LogOut className="w-3.5 h-3.5 text-red-200" />
@@ -1348,7 +1388,7 @@ const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ accountType: prop
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className="font-medium text-sm"
+                    className="text-sm font-medium"
                   >
                     تسجيل الخروج
                   </motion.span>
@@ -1690,9 +1730,9 @@ const ResponsiveHeader: React.FC = () => {
   }, []);
 
   return (
-    <header className={`bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30 transition-all duration-300 ease-in-out ${getHeaderMargin()}`}>
-      <div className="flex items-center justify-between px-4 py-3 lg:px-6 relative">
-        <div className="flex items-center gap-4">
+    <header className={`sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm transition-all duration-300 ease-in-out ${getHeaderMargin()}`}>
+      <div className="flex relative justify-between items-center px-4 py-3 lg:px-6">
+        <div className="flex gap-4 items-center">
           <Button
             variant="ghost"
             size="icon"
@@ -1717,89 +1757,94 @@ const ResponsiveHeader: React.FC = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-3 overflow-visible">
+        <div className="flex overflow-visible gap-2 lg:gap-3 items-center">
           {/* أيقونة الرسائل مع القائمة المنسدلة */}
-          <div className="relative messages-dropdown inline-block">
+          <div className="inline-block relative messages-dropdown">
           <Button
             variant="ghost"
             size="icon"
               onClick={toggleMessagesDropdown}
-              className={`relative transition-all duration-500 ease-out group ${
+              className={`relative transition-all duration-300 ease-out group h-10 w-10 lg:h-11 lg:w-11 ${
                 isMessagesActive 
-                  ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' 
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' 
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
               }`}
               title={`الرسائل${newMessagesCount > 0 ? ` (${newMessagesCount} جديدة)` : ''}`}
             >
-              <MessageSquare className="w-5 h-5 group-hover:scale-105 transition-transform duration-500 ease-out" />
+              <MessageSquare className="w-5 h-5 lg:w-6 lg:h-6 transition-transform duration-300 ease-out group-hover:scale-105" />
             {/* مؤشر الرسائل الجديدة */}
               {newMessagesCount > 0 && (
-                <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full animate-pulse flex items-center justify-center shadow-lg">
-                  <span className="text-[10px] text-white font-bold">
+                <div className="absolute -top-1 -right-1 min-w-[20px] h-[20px] lg:min-w-[22px] lg:h-[22px] bg-red-500 rounded-full animate-pulse flex items-center justify-center shadow-lg border-2 border-white">
+                  <span className="text-[10px] lg:text-[11px] text-white font-bold">
                     {newMessagesCount > 9 ? '9+' : newMessagesCount}
                   </span>
                 </div>
               )}
               {/* مؤشر الصفحة النشطة */}
               {isMessagesActive && (
-                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full shadow-sm"></div>
+                <div className="absolute -bottom-1 left-1/2 w-1.5 h-1.5 lg:w-2 lg:h-2 bg-blue-600 rounded-full shadow-sm transform -translate-x-1/2"></div>
               )}
           </Button>
 
             {/* قائمة الرسائل المنسدلة */}
             {showMessagesDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 z-50 min-w-max transform origin-top-right">
-                <div className="p-4 border-b border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">الرسائل الأخيرة</h3>
+              <div className="absolute left-0 lg:left-auto lg:right-0 top-full z-50 mt-2 w-72 sm:w-80 lg:w-96 min-w-max rounded-xl border border-gray-200 shadow-2xl backdrop-blur-sm transform origin-top-right bg-white/98">
+                <div className="p-4 lg:p-6 border-b border-gray-100">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-base lg:text-lg font-bold text-gray-900">الرسائل الأخيرة</h3>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={navigateToMessages}
-                      className="text-blue-600 hover:text-blue-700 text-sm"
+                      className="text-xs lg:text-sm text-blue-600 hover:text-blue-700 px-2 py-1 lg:px-3 lg:py-2 rounded-lg hover:bg-blue-50"
                     >
                       عرض الكل
                     </Button>
                   </div>
                 </div>
                 
-                <div className="max-h-64 overflow-y-auto max-w-full">
+                <div className="overflow-y-auto max-w-full max-h-64 lg:max-h-80">
                   {messagesLoading ? (
-                    <div className="p-4 text-center text-gray-500">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm">جاري تحميل الرسائل...</p>
+                    <div className="p-4 lg:p-6 text-center text-gray-500">
+                      <div className="mx-auto mb-3 w-8 h-8 rounded-full border-b-2 border-blue-600 animate-spin"></div>
+                      <p className="text-sm lg:text-base">جاري تحميل الرسائل...</p>
                     </div>
                   ) : recentMessages.length > 0 ? (
                     recentMessages.map((message) => (
                       <div
                         key={message.id}
                         onClick={() => handleMessageClick(message)}
-                        className={`p-3 border-b border-gray-50 cursor-pointer transition-colors hover:bg-gray-50 ${
-                          message.unread ? 'bg-blue-50' : ''
+                        className={`p-3 lg:p-4 border-b border-gray-50 cursor-pointer transition-all duration-200 hover:bg-blue-50 active:scale-98 ${
+                          message.unread ? 'bg-blue-50 border-r-4 border-r-blue-500' : ''
                         }`}
                       >
-                        <div className="flex items-start justify-between">
+                        <div className="flex justify-between items-start gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {message.sender}
-                            </p>
-                            <p className="text-sm text-gray-600 truncate mt-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-sm lg:text-base font-semibold text-gray-900 truncate">
+                                {message.sender}
+                              </p>
+                              {message.unread && (
+                                <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                              )}
+                            </div>
+                            <p className="text-sm lg:text-base text-gray-600 truncate leading-relaxed">
                               {message.message}
                             </p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="mt-2 text-xs lg:text-sm text-gray-400 font-medium">
                               {formatTime(message.time)}
                             </p>
                           </div>
-                          {message.unread && (
-                            <div className="w-2 h-2 bg-blue-500 rounded-full ml-2 flex-shrink-0"></div>
-                          )}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="p-4 text-center text-gray-500">
-                      <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                      <p className="text-sm">لا توجد رسائل جديدة</p>
+                    <div className="p-6 lg:p-8 text-center text-gray-500">
+                      <div className="w-16 h-16 lg:w-20 lg:h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                        <MessageSquare className="w-8 h-8 lg:w-10 lg:h-10 text-gray-300" />
+                      </div>
+                      <p className="text-sm lg:text-base font-medium text-gray-600">لا توجد رسائل جديدة</p>
+                      <p className="text-xs lg:text-sm text-gray-400 mt-1">ستظهر الرسائل الجديدة هنا</p>
                     </div>
                   )}
                 </div>
@@ -1808,67 +1853,67 @@ const ResponsiveHeader: React.FC = () => {
           </div>
 
           {/* أيقونة الإشعارات مع القائمة المنسدلة */}
-          <div className="relative notifications-dropdown inline-block">
+          <div className="inline-block relative notifications-dropdown">
           <Button
             variant="ghost"
             size="icon"
               onClick={toggleNotificationsDropdown}
-              className={`relative transition-all duration-500 ease-out group ${
+              className={`relative transition-all duration-300 ease-out group h-10 w-10 lg:h-11 lg:w-11 ${
                 isNotificationsActive 
-                  ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' 
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                  ? 'text-orange-600 bg-orange-50 hover:bg-orange-100' 
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
               }`}
               title={`الإشعارات${newNotificationsCount > 0 ? ` (${newNotificationsCount} جديدة)` : ''}`}
             >
-              <Bell className="w-5 h-5 group-hover:scale-105 transition-transform duration-500 ease-out" />
+              <Bell className="w-5 h-5 lg:w-6 lg:h-6 transition-transform duration-300 ease-out group-hover:scale-105" />
             {/* مؤشر الإشعارات الجديدة */}
               {newNotificationsCount > 0 && (
-                <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-orange-500 rounded-full animate-pulse flex items-center justify-center shadow-lg">
-                  <span className="text-[10px] text-white font-bold">
+                <div className="absolute -top-1 -right-1 min-w-[20px] h-[20px] lg:min-w-[22px] lg:h-[22px] bg-orange-500 rounded-full animate-pulse flex items-center justify-center shadow-lg border-2 border-white">
+                  <span className="text-[10px] lg:text-[11px] text-white font-bold">
                     {newNotificationsCount > 9 ? '9+' : newNotificationsCount}
                   </span>
                 </div>
               )}
               {/* مؤشر الصفحة النشطة */}
               {isNotificationsActive && (
-                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-orange-600 rounded-full shadow-sm"></div>
+                <div className="absolute -bottom-1 left-1/2 w-1.5 h-1.5 lg:w-2 lg:h-2 bg-orange-600 rounded-full shadow-sm transform -translate-x-1/2"></div>
               )}
           </Button>
 
             {/* قائمة الإشعارات المنسدلة */}
             {showNotificationsDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 z-50 min-w-max transform origin-top-right">
-                <div className="p-4 border-b border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">الإشعارات الأخيرة</h3>
+              <div className="absolute left-0 lg:left-auto lg:right-0 top-full z-50 mt-2 w-72 sm:w-80 lg:w-96 min-w-max rounded-xl border border-gray-200 shadow-2xl backdrop-blur-sm transform origin-top-right bg-white/98">
+                <div className="p-4 lg:p-6 border-b border-gray-100">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-base lg:text-lg font-bold text-gray-900">الإشعارات الأخيرة</h3>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={navigateToNotifications}
-                      className="text-orange-600 hover:text-orange-700 text-sm"
+                      className="text-xs lg:text-sm text-orange-600 hover:text-orange-700 px-2 py-1 lg:px-3 lg:py-2 rounded-lg hover:bg-orange-50"
                     >
                       عرض الكل
                     </Button>
                   </div>
                 </div>
                 
-                <div className="max-h-64 overflow-y-auto max-w-full">
+                <div className="overflow-y-auto max-w-full max-h-64 lg:max-h-80">
                   {notificationsLoading ? (
-                    <div className="p-4 text-center text-gray-500">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600 mx-auto mb-2"></div>
-                      <p className="text-sm">جاري تحميل الإشعارات...</p>
+                    <div className="p-4 lg:p-6 text-center text-gray-500">
+                      <div className="mx-auto mb-3 w-8 h-8 rounded-full border-b-2 border-orange-600 animate-spin"></div>
+                      <p className="text-sm lg:text-base">جاري تحميل الإشعارات...</p>
                     </div>
                   ) : recentNotifications.length > 0 ? (
                     recentNotifications.map((notification) => (
                       <div
                         key={notification.id}
                         onClick={() => handleNotificationClick(notification)}
-                        className={`p-3 border-b border-gray-50 cursor-pointer transition-colors hover:bg-gray-50 ${
-                          !notification.read ? 'bg-orange-50' : ''
+                        className={`p-3 lg:p-4 border-b border-gray-50 cursor-pointer transition-all duration-200 hover:bg-orange-50 active:scale-98 ${
+                          !notification.read ? 'bg-orange-50 border-r-4 border-r-orange-500' : ''
                         }`}
                       >
-                        <div className="flex items-start gap-3">
-                          <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                        <div className="flex gap-3 items-start">
+                          <div className={`w-3 h-3 lg:w-4 lg:h-4 rounded-full mt-1.5 lg:mt-2 flex-shrink-0 ${
                             notification.type === 'message' ? 'bg-blue-500' :
                             notification.type === 'payment' ? 'bg-green-500' :
                             notification.type === 'system' ? 'bg-gray-500' :
@@ -1876,26 +1921,31 @@ const ResponsiveHeader: React.FC = () => {
                             'bg-orange-500'
                           }`}></div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900">
-                              {notification.title}
-                            </p>
-                            <p className="text-sm text-gray-600 truncate mt-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-sm lg:text-base font-semibold text-gray-900">
+                                {notification.title}
+                              </p>
+                              {!notification.read && (
+                                <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                              )}
+                            </div>
+                            <p className="text-sm lg:text-base text-gray-600 truncate leading-relaxed">
                               {notification.message}
                             </p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="mt-2 text-xs lg:text-sm text-gray-400 font-medium">
                               {formatTime(notification.time)}
                             </p>
                           </div>
-                          {!notification.read && (
-                            <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
-                          )}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="p-4 text-center text-gray-500">
-                      <Bell className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                      <p className="text-sm">لا توجد إشعارات جديدة</p>
+                    <div className="p-6 lg:p-8 text-center text-gray-500">
+                      <div className="w-16 h-16 lg:w-20 lg:h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                        <Bell className="w-8 h-8 lg:w-10 lg:h-10 text-gray-300" />
+                      </div>
+                      <p className="text-sm lg:text-base font-medium text-gray-600">لا توجد إشعارات جديدة</p>
+                      <p className="text-xs lg:text-sm text-gray-400 mt-1">ستظهر الإشعارات الجديدة هنا</p>
                     </div>
                   )}
                 </div>
@@ -1907,10 +1957,10 @@ const ResponsiveHeader: React.FC = () => {
           <div className="w-px h-6 bg-gray-300"></div>
 
           {/* صورة المستخدم */}
-          <div className="flex items-center gap-2">
-            <Avatar className="w-8 h-8 cursor-pointer hover:scale-105 transition-transform duration-500 ease-out">
+          <div className="flex gap-2 items-center">
+            <Avatar className="w-8 h-8 transition-transform duration-500 ease-out cursor-pointer hover:scale-105">
             <AvatarImage src={userData?.photoURL || '/default-avatar.png'} alt={getUserDisplayName()} />
-            <AvatarFallback className="bg-blue-100 text-blue-600 font-bold">
+            <AvatarFallback className="font-bold text-blue-600 bg-blue-100">
               {getUserDisplayName().slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -1944,12 +1994,12 @@ const ResponsiveFooter: React.FC = () => {
   };
 
   return (
-    <footer className={`bg-white border-t border-gray-200 py-4 px-4 lg:px-6 transition-all duration-300 ease-in-out ${getFooterMargin()}`}>
-      <div className="flex items-center justify-between">
+    <footer className={`px-4 py-4 bg-white border-t border-gray-200 transition-all duration-300 ease-in-out lg:px-6 ${getFooterMargin()}`}>
+      <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
           © 2024 منصة الحلم. جميع الحقوق محفوظة.
         </div>
-        <div className="flex items-center gap-4 text-sm text-gray-600">
+        <div className="flex gap-4 items-center text-sm text-gray-600">
           <span>الإصدار 1.0.0</span>
         </div>
       </div>
@@ -1989,7 +2039,7 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Header */}
       {showHeader && <ResponsiveHeader />}
       
@@ -2000,8 +2050,7 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
         
         {/* Content */}
         <main 
-          className={`flex-1 min-h-0 overflow-auto transition-all duration-300 ease-in-out ${getMainContentMargin()}`}
-          style={{ direction: 'rtl' }}
+          className={`overflow-auto flex-1 min-h-0 transition-all duration-300 ease-in-out ${getMainContentMargin()} rtl`}
         >
           <div className="p-4 lg:p-6">
             <motion.div

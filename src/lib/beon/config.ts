@@ -1,13 +1,18 @@
 // تكوين BeOn V3 API حسب الوثائق الرسمية المحدثة
 export const BEON_CONFIG = {
-  // API Integration Token - الـ Token الجديد من V3
+  // API Integration Token - الـ Token الجديد لـ V3
   TOKENS: {
-    // جميع الخدمات الأساسية تستخدم نفس الـ Token
-    API_TOKEN: process.env.BEON_API_TOKEN || 'Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv',
+    // V3 API Token - للجميع
+    V3_API: process.env.BEON_V3_TOKEN || 'Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv',
+    // SMS Regular - للرسائل العادية
     SMS_REGULAR: process.env.BEON_SMS_TOKEN || 'Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv',
-    SMS_TEMPLATE: process.env.BEON_SMS_TOKEN_TEMPLATE || process.env.BEON_SMS_TEMPLATE_TOKEN || 'SPb4sbemr5bwb7sjzCqTcL',
+    // SMS Template - للرسائل القوالب
+    SMS_TEMPLATE: process.env.BEON_SMS_TEMPLATE_TOKEN || 'Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv',
+    // SMS Bulk - للرسائل الجماعية
     SMS_BULK: process.env.BEON_BULK_SMS_TOKEN || 'Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv',
+    // WhatsApp OTP
     WHATSAPP_OTP: process.env.BEON_WHATSAPP_OTP_TOKEN || process.env.BEON_OTP_TOKEN || 'yK1zYZRgjvuVC5wJcmkMwL0zFsRi9BhytEYPXgnzbNCyPFkaJBp9ngjmO6q4',
+    // WhatsApp
     WHATSAPP: process.env.BEON_WHATSAPP_TOKEN || 'Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv'
   },
   
@@ -15,20 +20,20 @@ export const BEON_CONFIG = {
   ENDPOINTS: {
     BASE_URL: process.env.BEON_BASE_URL || 'https://v3.api.beon.chat',
     
-    // SMS Regular
-    SMS: '/api/v3/messages/sms/bulk',
+    // SMS Regular - للرسائل العادية
+    SMS: '/api/v3/messages/sms',
     
-    // SMS Template
-    SMS_TEMPLATE: '/api/v3/send/message/sms/template',
+    // SMS Template - للرسائل القوالب
+    SMS_TEMPLATE: '/api/v3/messages/sms/template',
     
-    // SMS Bulk
+    // SMS Bulk - للرسائل الجماعية
     SMS_BULK: '/api/v3/messages/sms/bulk',
     
-    // WhatsApp OTP (OTP V3 endpoint per latest docs)
+    // WhatsApp OTP
     WHATSAPP_OTP: '/api/v3/messages/otp',
     
-    // WhatsApp (BeOn لا يدعم WhatsApp - نستخدم SMS endpoint)
-    WHATSAPP: '/api/v3/messages/sms/bulk'
+    // WhatsApp
+    WHATSAPP: '/api/v3/messages/whatsapp'
   },
   
   // إعدادات افتراضية

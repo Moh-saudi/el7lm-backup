@@ -162,6 +162,7 @@ const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
         { icon: Shield, label: 'المستخدمين', href: '/dashboard/admin/users' },
         { icon: Settings, label: 'الإعدادات', href: '/dashboard/admin/settings' },
         { icon: BarChart3, label: 'التقارير', href: '/dashboard/admin/reports' },
+        { icon: BarChart3, label: 'Clarity Analytics', href: '/dashboard/admin/clarity' },
         { icon: Globe, label: 'النظام', href: '/dashboard/admin/system' },
       ]
     };

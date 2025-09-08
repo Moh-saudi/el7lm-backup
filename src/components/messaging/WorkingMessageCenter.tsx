@@ -41,6 +41,7 @@ import {
   Smile
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useClarity } from '@/hooks/useClarity';
 
 interface Conversation {
   id: string;
@@ -98,6 +99,7 @@ const USER_TYPES = {
 
 const WorkingMessageCenter: React.FC = () => {
   const { user, userData } = useAuth();
+  const { trackEvent, setTag, upgradeSession } = useClarity();
   const t = (key: string) => key;
   const locale = 'ar';
   const isRTL = true;
@@ -310,11 +312,28 @@ const WorkingMessageCenter: React.FC = () => {
         return;
       }
 
+      // Get proper sender name for conversation
+      const getCurrentUserName = () => {
+        if (userData.accountType === 'player') {
+          return userData.full_name || userData.name || userData.displayName || user.displayName || 'أنا';
+        } else if (userData.accountType === 'club') {
+          return userData.name || userData.club_name || userData.displayName || user.displayName || 'نادي';
+        } else if (userData.accountType === 'academy') {
+          return userData.name || userData.academy_name || userData.displayName || user.displayName || 'أكاديمية';
+        } else if (userData.accountType === 'agent') {
+          return userData.name || userData.agent_name || userData.agency_name || userData.displayName || user.displayName || 'وكيل';
+        } else if (userData.accountType === 'trainer') {
+          return userData.name || userData.trainer_name || userData.displayName || user.displayName || 'مدرب';
+        } else {
+          return userData.displayName || userData.name || userData.full_name || user.displayName || 'أنا';
+        }
+      };
+
       // إنشاء محادثة جديدة
       const newConversationData = {
         participants: [user.uid, actualContactId],
         participantNames: {
-          [user.uid]: user.displayName || user.email || userData.name || userData.displayName || userData.full_name || 'أنا',
+          [user.uid]: getCurrentUserName(),
           [actualContactId]: contact.name
         },
         participantTypes: {
@@ -342,6 +361,11 @@ const WorkingMessageCenter: React.FC = () => {
       
       console.log('✅ تم إنشاء محادثة جديدة:', conversationRef.id);
       toast.success(`تم إنشاء محادثة مع ${contact.name}`);
+      
+      // Track Clarity events
+      trackEvent('new_conversation_created');
+      setTag('conversation_type', contact.type);
+      upgradeSession('new_conversation_created');
       
       setShowNewChat(false);
       setSelectedContact(null);
@@ -390,8 +414,7 @@ const WorkingMessageCenter: React.FC = () => {
       try {
         console.log('🔄 جلب جميع المستخدمين...');
         const usersQueryRef = query(
-          collection(db, 'users'), 
-          where('isDeleted', '!=', true),
+          collection(db, 'users'),
           limit(100)
         );
         const usersSnapshot = await getDocs(usersQueryRef);
@@ -408,15 +431,16 @@ const WorkingMessageCenter: React.FC = () => {
             let isDependent = false;
           let parentAccountId: any = null;
           let parentAccountType: any = null;
+          let profileData: any = null;
             
             try {
               const profileCollection = accountType === 'admin' ? 'users' : `${accountType}s`;
               const profileDocRef = doc(db, profileCollection, userDocSnapshot.id);
               const profileDocSnapshot = await getDoc(profileDocRef);
               if (profileDocSnapshot.exists()) {
-                const profileData = profileDocSnapshot.data() as any;
+                profileData = profileDocSnapshot.data() as any;
                 if (accountType === 'player') {
-                  contactName = profileData.full_name || profileData.name || profileData.displayName || 'لاعب';
+                  contactName = profileData.full_name || profileData.name || profileData.displayName || data.displayName || data.name || data.full_name || 'لاعب';
                   if (profileData.club_id || profileData.academy_id || profileData.trainer_id || profileData.agent_id) {
                     isDependent = true;
                     parentAccountId = profileData.club_id || profileData.academy_id || profileData.trainer_id || profileData.agent_id;
@@ -427,40 +451,53 @@ const WorkingMessageCenter: React.FC = () => {
                   }
                   organizationName = profileData.current_club || profileData.clubName || profileData.academyName || null;
                 } else if (accountType === 'club') {
-                  contactName = profileData.name || profileData.club_name || profileData.displayName || 'نادي';
+                  contactName = profileData.name || profileData.club_name || profileData.displayName || data.displayName || data.name || 'نادي';
                   organizationName = profileData.organizationName || profileData.clubName || null;
                 } else if (accountType === 'academy') {
-                  contactName = profileData.name || profileData.academy_name || profileData.displayName || 'أكاديمية';
+                  contactName = profileData.name || profileData.academy_name || profileData.displayName || data.displayName || data.name || 'أكاديمية';
                   organizationName = profileData.organizationName || profileData.academyName || null;
                 } else if (accountType === 'agent') {
-                  contactName = profileData.name || profileData.agent_name || profileData.agency_name || profileData.displayName || 'وكيل';
+                  contactName = profileData.name || profileData.agent_name || profileData.agency_name || profileData.displayName || data.displayName || data.name || 'وكيل';
                   organizationName = profileData.organizationName || profileData.agencyName || null;
                 } else if (accountType === 'trainer') {
-                  contactName = profileData.name || profileData.trainer_name || profileData.displayName || 'مدرب';
+                  contactName = profileData.name || profileData.trainer_name || profileData.displayName || data.displayName || data.name || 'مدرب';
                   organizationName = profileData.organizationName || profileData.specialization || null;
                 }
               } else {
-                contactName = data.name || data.full_name || data.displayName || 'مستخدم';
+                // Fallback to users collection data
+                contactName = data.displayName || data.name || data.full_name || 'مستخدم';
                 organizationName = data.organizationName || data.clubName || data.academyName || data.agencyName || null;
               }
           } catch (e) {
             console.log(`⚠️ خطأ ملف شخصي ${userDocSnapshot.id}:`, e);
-              contactName = data.name || data.full_name || data.displayName || 'مستخدم';
+              contactName = data.displayName || data.name || data.full_name || 'مستخدم';
               organizationName = data.organizationName || data.clubName || data.academyName || data.agencyName || null;
             }
             
           let avatarUrl: string | null = null;
           try {
-            const userDataForAvatar = { ...data, uid: userDocSnapshot.id, accountType };
-            avatarUrl = (await getUserAvatarFromSupabase(userDocSnapshot.id, accountType)) || getPlayerAvatarUrl(userDataForAvatar, user);
+            // Try Supabase first, then fallback to profile data, then users data
+            avatarUrl = await getUserAvatarFromSupabase(userDocSnapshot.id, accountType);
+            if (!avatarUrl && profileData?.avatar) {
+              avatarUrl = profileData.avatar;
+            }
+            if (!avatarUrl && data.avatar) {
+              avatarUrl = data.avatar;
+            }
+            if (!avatarUrl) {
+              const userDataForAvatar = { ...data, uid: userDocSnapshot.id, accountType };
+              avatarUrl = getPlayerAvatarUrl(userDataForAvatar, user);
+            }
           } catch (e) {
+              console.log(`⚠️ خطأ جلب الصورة ${userDocSnapshot.id}:`, e);
               avatarUrl = null;
             }
             
+            // Use clean contact name without type prefixes
             let displayName = contactName;
-            if (isDependent && accountType === 'player') {
-            const parentTypeNames: any = { club: 'نادي', academy: 'أكاديمية', trainer: 'مدرب', agent: 'وكيل' };
-            displayName = `👤 ${contactName}${parentAccountType ? ` (تابع لـ ${parentTypeNames[parentAccountType] || parentAccountType})` : ''}`;
+            if (isDependent && accountType === 'player' && parentAccountType) {
+              const parentTypeNames: any = { club: 'نادي', academy: 'أكاديمية', trainer: 'مدرب', agent: 'وكيل' };
+              displayName = `${contactName} (${parentTypeNames[parentAccountType] || parentAccountType})`;
           }
 
           const c: Contact = {
@@ -576,11 +613,28 @@ const WorkingMessageCenter: React.FC = () => {
     try {
       console.log('📤 إرسال رسالة جديدة:', newMessage);
       
+      // Get proper sender name from userData
+      const getSenderName = () => {
+        if (userData.accountType === 'player') {
+          return userData.full_name || userData.name || userData.displayName || user.displayName || 'أنا';
+        } else if (userData.accountType === 'club') {
+          return userData.name || userData.club_name || userData.displayName || user.displayName || 'نادي';
+        } else if (userData.accountType === 'academy') {
+          return userData.name || userData.academy_name || userData.displayName || user.displayName || 'أكاديمية';
+        } else if (userData.accountType === 'agent') {
+          return userData.name || userData.agent_name || userData.agency_name || userData.displayName || user.displayName || 'وكيل';
+        } else if (userData.accountType === 'trainer') {
+          return userData.name || userData.trainer_name || userData.displayName || user.displayName || 'مدرب';
+        } else {
+          return userData.displayName || userData.name || userData.full_name || user.displayName || 'أنا';
+        }
+      };
+
       const messageData = {
         conversationId: selectedConversation.id,
         senderId: user.uid,
         receiverId: selectedConversation.participants.find(id => id !== user.uid) || '',
-        senderName: user.displayName || user.email || userData.name || userData.displayName || userData.full_name || 'أنا',
+        senderName: getSenderName(),
         receiverName: selectedConversation.participantNames[selectedConversation.participants.find(id => id !== user.uid) || ''] || 'مستخدم',
         senderType: userData.accountType || 'player',
         receiverType: selectedConversation.participantTypes[selectedConversation.participants.find(id => id !== user.uid) || ''] || 'player',
@@ -604,6 +658,10 @@ const WorkingMessageCenter: React.FC = () => {
 
       setNewMessage('');
       toast.success('تم إرسال الرسالة');
+      
+      // Track Clarity events
+      trackEvent('message_sent');
+      setTag('message_length', newMessage.length.toString());
     } catch (error) {
       console.error('❌ خطأ في إرسال الرسالة:', error);
       toast.error('فشل في إرسال الرسالة');
@@ -619,6 +677,10 @@ const WorkingMessageCenter: React.FC = () => {
       
       // جلب الرسائل
       await fetchMessages(conversation.id);
+      
+      // Track Clarity events
+      trackEvent('conversation_opened');
+      setTag('conversation_participant_type', conversation.participantTypes[conversation.participants.find(id => id !== user?.uid) || ''] || 'unknown');
       
       // تحديث حالة المحادثة
       setConversations(prev => 
@@ -784,37 +846,36 @@ const WorkingMessageCenter: React.FC = () => {
   });
 
   return (
-    <div className="flex h-[calc(100vh-200px)] min-h-[500px] bg-gray-50 mb-8">
-      {/* عمود المحادثات في اليسار */}
-      <div className="w-1/3 bg-white shadow-lg rounded-l-lg overflow-hidden border-r border-gray-200">
+    <div className="flex flex-col lg:flex-row h-[calc(100vh-120px)] min-h-[600px] bg-gray-50">
+      {/* عمود المحادثات */}
+      <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} flex-col w-full lg:w-1/3 bg-white shadow-lg lg:rounded-l-lg overflow-hidden border-r-0 lg:border-r border-gray-200`}>
         {/* Header */}
-        <div className="bg-green-600 text-white p-4">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 lg:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <MessageSquare className="h-5 w-5" />
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <MessageSquare className="h-6 w-6" />
               </div>
               <div>
-                                <h2 className="text-lg font-semibold">المحادثات</h2>
-                <p className="text-sm text-green-100">
-              {conversations.length} محادثة | {contacts.length} جهات اتصال
-            </p>
+                <h2 className="text-xl font-bold">الرسائل</h2>
+                <p className="text-sm text-blue-100 mt-1">
+                  {conversations.length} محادثة • {contacts.length} جهة اتصال
+                </p>
               </div>
             </div>
             <Button
-              className="text-white hover:bg-white/20 bg-transparent border-none p-2"
+              className="text-white hover:bg-white/20 bg-transparent border-none p-3 rounded-full"
               onClick={() => {
                 console.log('🔄 تم النقر على زر محادثة جديدة');
                 console.log('📊 عدد جهات الاتصال الحالية:', contacts.length);
-                  setShowNewChat(true);
-                  setSearchTerm('');
-                // إذا لم تُجلب بعد، ابدأ الجلب الآن
+                setShowNewChat(true);
+                setSearchTerm('');
                 if (!contactsFetched && !contactsLoading) {
                   fetchContacts();
                 }
               }}
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-6 w-6" />
             </Button>
           </div>
         </div>
@@ -824,19 +885,19 @@ const WorkingMessageCenter: React.FC = () => {
           <div className="relative">
             <Input
               type="text"
-                              placeholder="البحث في المحادثات..."
+              placeholder="البحث في المحادثات..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white border-gray-300 focus:border-green-500 focus:ring-green-500"
+              className="pr-12 pl-4 h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl text-base"
             />
-            <Search className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Search className="h-5 w-5 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
         </div>
         
         {/* قائمة المحادثات */}
-        <div className="overflow-y-auto max-h-[calc(100vh-280px)]">
+        <div className="flex-1 overflow-y-auto">
           {filteredConversations.length > 0 ? (
-            <div className="p-2">
+            <div className="space-y-1 p-2">
               {filteredConversations.map((conversation) => {
                 const otherParticipantId = conversation.participants.find(id => id !== user.uid);
                 const otherParticipantName = conversation.participantNames[otherParticipantId || ''] || 'مستخدم';
@@ -847,40 +908,38 @@ const WorkingMessageCenter: React.FC = () => {
                 return (
                   <div
                     key={conversation.id}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                    className="flex items-center gap-4 p-4 hover:bg-blue-50 rounded-xl cursor-pointer transition-all duration-200 border border-transparent hover:border-blue-200 active:scale-98"
                     onClick={() => openConversation(conversation)}
                   >
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage 
-                        src={conversation.participantAvatars?.[conversation.participants.find(id => id !== user?.uid) || ''] || ''} 
-                        alt={conversation.participantNames[conversation.participants.find(id => id !== user?.uid) || ''] || 'مستخدم'}
-                        onError={(e) => {
-                          console.log('❌ Error loading avatar image in conversation list:', e);
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                        onLoad={(e) => {
-                          console.log('✅ Avatar image loaded successfully in conversation list');
-                        }}
-                        className="transition-opacity duration-500 ease-out hover:scale-105"
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white animate-pulse">
-                        {(() => {
-                          const participantId = conversation.participants.find(id => id !== user?.uid);
-                          const participantType = conversation.participantTypes[participantId || ''];
-                          const UserIcon = USER_TYPES[participantType as keyof typeof USER_TYPES]?.icon || Users;
-                          return <UserIcon className="h-6 w-6" />;
-                        })()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      <Avatar className="h-14 w-14 ring-2 ring-white shadow-sm">
+                        <AvatarImage 
+                          src={conversation.participantAvatars?.[conversation.participants.find(id => id !== user?.uid) || ''] || ''} 
+                          alt={conversation.participantNames[conversation.participants.find(id => id !== user?.uid) || ''] || 'مستخدم'}
+                          className="transition-transform duration-200 hover:scale-105"
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-semibold">
+                          {(() => {
+                            const participantId = conversation.participants.find(id => id !== user?.uid);
+                            const participantType = conversation.participantTypes[participantId || ''];
+                            const UserIcon = USER_TYPES[participantType as keyof typeof USER_TYPES]?.icon || Users;
+                            return <UserIcon className="h-7 w-7" />;
+                          })()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {conversation.isActive && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                      )}
+                    </div>
+                    
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-semibold text-sm truncate">
+                        <h4 className="font-bold text-base text-gray-900 truncate">
                           {conversation.participantNames[conversation.participants.find(id => id !== user?.uid) || ''] || 'مستخدم'}
                         </h4>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           {conversation.lastMessageTime && (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-500 font-medium">
                               {(() => {
                                 const now = new Date();
                                 const messageTime = conversation.lastMessageTime.toDate ? conversation.lastMessageTime.toDate() : new Date(conversation.lastMessageTime);
@@ -899,30 +958,27 @@ const WorkingMessageCenter: React.FC = () => {
                             </span>
                           )}
                           {conversation.unreadCount[user?.uid || ''] > 0 && (
-                            <Badge className="h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center bg-red-500 text-white">
-                              {conversation.unreadCount[user?.uid || ''] > 99 ? '99+' : conversation.unreadCount[user?.uid || '']}
-                            </Badge>
+                            <div className="h-6 w-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+                              {conversation.unreadCount[user?.uid || ''] > 9 ? '9+' : conversation.unreadCount[user?.uid || '']}
+                            </div>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          <Badge className="text-xs border border-gray-300 bg-white text-gray-700">
-                            {(() => {
-                              const participantId = conversation.participants.find(id => id !== user?.uid);
-                              const participantType = conversation.participantTypes[participantId || ''];
-                              return USER_TYPES[participantType as keyof typeof USER_TYPES]?.name || 'مستخدم';
-                            })()}
-                          </Badge>
-                          {conversation.isActive && (
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          )}
-                        </div>
+                      
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 border-0">
+                          {(() => {
+                            const participantId = conversation.participants.find(id => id !== user?.uid);
+                            const participantType = conversation.participantTypes[participantId || ''];
+                            return USER_TYPES[participantType as keyof typeof USER_TYPES]?.name || 'مستخدم';
+                          })()}
+                        </Badge>
                       </div>
+                      
                       {conversation.lastMessage && (
-                        <p className="text-sm text-gray-600 truncate mt-1">
+                        <p className="text-sm text-gray-600 truncate">
                           {conversation.lastSenderId === user?.uid && (
-                            <span className="text-blue-600 mr-1">أنت:</span>
+                            <span className="text-blue-600 font-medium ml-1">أنت:</span>
                           )}
                           {conversation.lastMessage}
                         </p>
@@ -933,83 +989,80 @@ const WorkingMessageCenter: React.FC = () => {
               })}
             </div>
           ) : (
-          <div className="text-center text-gray-500 py-8">
-            <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-semibold mb-2">
-                {searchTerm ? 'لا توجد نتائج' : 'لا توجد محادثات'}
-              </h3>
-              <p className="text-sm">
-                {searchTerm 
-                  ? 'جرب البحث بكلمات مختلفة'
-                  : 'ابدأ محادثة جديدة مع جهات الاتصال'
-                }
-              </p>
-              {!searchTerm && (
-            <Button 
-              className="mt-4"
-                  onClick={() => setShowNewChat(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              محادثة جديدة
-            </Button>
-              )}
-          </div>
+            <div className="flex-1 flex items-center justify-center text-center text-gray-500 p-8">
+              <div>
+                <MessageSquare className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-semibold mb-2">
+                  {searchTerm ? 'لا توجد نتائج' : 'لا توجد محادثات'}
+                </h3>
+                <p className="text-sm mb-4">
+                  {searchTerm 
+                    ? 'جرب البحث بكلمات مختلفة'
+                    : 'ابدأ محادثة جديدة مع جهات الاتصال'
+                  }
+                </p>
+                {!searchTerm && (
+                  <Button 
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl"
+                    onClick={() => setShowNewChat(true)}
+                  >
+                    <Plus className="h-5 w-5 ml-2" />
+                    محادثة جديدة
+                  </Button>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>
 
-      {/* عمود الرسائل في المنتصف */}
-      <div className="flex-1 flex flex-col bg-white shadow-lg rounded-r-lg overflow-hidden">
+      {/* عمود الرسائل */}
+      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-col w-full lg:flex-1 bg-white shadow-lg lg:rounded-r-lg overflow-hidden`}>
         {selectedConversation ? (
           <div className="flex flex-col h-full">
             {/* رأس المحادثة */}
-            <div className="p-4 border-b bg-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Button
-                    onClick={closeConversation}
-                    className="p-2 text-gray-600 hover:bg-gray-100 bg-transparent border-none"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                  <Avatar className="h-10 w-10">
+            <div className="p-4 lg:p-6 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={closeConversation}
+                  className="lg:hidden text-white hover:bg-white/20 bg-transparent border-none p-2 rounded-full"
+                >
+                  <ArrowLeft className="h-6 w-6" />
+                </Button>
+                
+                <div className="relative">
+                  <Avatar className="h-12 w-12 lg:h-14 lg:w-14 ring-2 ring-white shadow-sm">
                     <AvatarImage 
                       src={selectedConversation.participantAvatars?.[selectedConversation.participants.find(id => id !== user?.uid) || ''] || ''}
                       alt={selectedConversation.participantNames[selectedConversation.participants.find(id => id !== user?.uid) || ''] || 'مستخدم'}
-                      onError={(e) => {
-                        console.log('❌ Error loading avatar image in conversation header:', e);
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                      onLoad={(e) => {
-                        console.log('✅ Avatar image loaded successfully in conversation header');
-                      }}
-                      className="transition-opacity duration-200 hover:scale-105"
+                      className="transition-transform duration-200 hover:scale-105"
                     />
-                    <AvatarFallback className="animate-pulse">
-                      <Users className="h-5 w-5" />
+                    <AvatarFallback className="bg-white/20 text-white">
+                      <Users className="h-6 w-6 lg:h-7 lg:w-7" />
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <h3 className="font-semibold">
-                      {selectedConversation.participantNames[selectedConversation.participants.find(id => id !== user?.uid) || ''] || 'مستخدم'}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                                                  <Badge className="text-xs border border-gray-300 bg-white text-gray-700">
-                        {USER_TYPES[selectedConversation.participantTypes[selectedConversation.participants.find(id => id !== user?.uid) || ''] as keyof typeof USER_TYPES]?.name || 'مستخدم'}
-                      </Badge>
-                      {selectedConversation.isActive && (
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      )}
-                    </div>
+                  {selectedConversation.isActive && (
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                  )}
+                </div>
+                
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg lg:text-xl">
+                    {selectedConversation.participantNames[selectedConversation.participants.find(id => id !== user?.uid) || ''] || 'مستخدم'}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className="text-xs px-2 py-1 rounded-full bg-white/20 text-white border-0">
+                      {USER_TYPES[selectedConversation.participantTypes[selectedConversation.participants.find(id => id !== user?.uid) || ''] as keyof typeof USER_TYPES]?.name || 'مستخدم'}
+                    </Badge>
+                    <span className="text-xs text-blue-100">متصل الآن</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* منطقة الرسائل */}
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-              <div className="space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-gradient-to-b from-gray-50 to-white">
+              <div className="space-y-6">
                 {messages.map((message, index) => {
                   const isCurrentUser = message.senderId === user?.uid;
                   const UserIcon = USER_TYPES[message.senderType as keyof typeof USER_TYPES]?.icon || Users;
@@ -1017,38 +1070,30 @@ const WorkingMessageCenter: React.FC = () => {
                   return (
                     <div
                       key={`${message.id}-${index}`}
-                      className={`flex items-start gap-2 mb-4 ${
+                      className={`flex items-start gap-3 ${
                         isCurrentUser ? 'flex-row-reverse' : 'flex-row'
                       }`}
                     >
                       <div className="flex-shrink-0">
-                        <Avatar className="w-8 h-8">
+                        <Avatar className="w-10 h-10 lg:w-12 lg:h-12 shadow-sm ring-2 ring-white">
                           <AvatarImage 
                             src={message.senderAvatar}
-                            onError={(e) => {
-                              console.log('❌ Error loading avatar image in messages:', e);
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                            onLoad={(e) => {
-                              console.log('✅ Avatar image loaded successfully in messages');
-                            }}
-                            className="transition-opacity duration-500 ease-out hover:scale-105"
+                            className="transition-transform duration-200 hover:scale-105"
                           />
-                          <AvatarFallback className="animate-pulse">
-                            <UserIcon className="w-4 h-4" />
+                          <AvatarFallback className={`${isCurrentUser ? 'bg-blue-500' : 'bg-gray-400'} text-white`}>
+                            <UserIcon className="w-5 h-5 lg:w-6 lg:h-6" />
                           </AvatarFallback>
                         </Avatar>
                       </div>
                       
                       <div
-                        className={`flex flex-col max-w-[70%] ${
+                        className={`flex flex-col max-w-[75%] lg:max-w-[65%] ${
                           isCurrentUser ? 'items-end' : 'items-start'
                         }`}
                       >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium text-gray-900">
-                            {message.senderName || 'مستخدم'}
+                        <div className={`flex items-center gap-2 mb-2 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <span className="text-sm font-semibold text-gray-800">
+                            {isCurrentUser ? 'أنت' : (message.senderName || 'مستخدم')}
                           </span>
                           <span className="text-xs text-gray-500">
                             {message.timestamp.toLocaleTimeString('ar-EG', {
@@ -1062,13 +1107,13 @@ const WorkingMessageCenter: React.FC = () => {
                         </div>
                         
                         <div
-                          className={`rounded-lg p-3 ${
+                          className={`rounded-2xl px-4 py-3 lg:px-5 lg:py-4 shadow-sm ${
                             isCurrentUser
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-100 text-gray-900'
-                          }`}
+                              ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                              : 'bg-white text-gray-900 border border-gray-200'
+                          } max-w-full`}
                         >
-                          <p className="whitespace-pre-wrap break-words text-base leading-relaxed">
+                          <p className="whitespace-pre-wrap break-words text-base lg:text-lg leading-relaxed">
                             {message.message}
                           </p>
                         </div>
@@ -1081,8 +1126,8 @@ const WorkingMessageCenter: React.FC = () => {
             </div>
 
             {/* منطقة إدخال الرسالة */}
-            <div className="p-4 border-t bg-white relative">
-              <div className="flex items-center gap-2">
+            <div className="p-4 lg:p-6 border-t bg-white relative">
+              <div className="flex items-center gap-3">
                 <div className="relative flex-1">
                   <Input
                     type="text"
@@ -1095,26 +1140,26 @@ const WorkingMessageCenter: React.FC = () => {
                         sendMessage();
                       }
                     }}
-                    className="pr-10"
+                    className="pr-12 pl-4 h-12 lg:h-14 bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-2xl text-base lg:text-lg"
                   />
                   <Button
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 rounded-md transition-all duration-500 ease-out ${
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-all duration-200 ${
                       showEmojiPicker 
                         ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' 
                         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
                     } bg-transparent border-none`}
                     title="إضافة إيموجي"
                   >
-                    <Smile className="h-4 w-4" />
+                    <Smile className="h-5 w-5 lg:h-6 lg:w-6" />
                   </Button>
                 </div>
                 <Button
                   onClick={sendMessage}
                   disabled={!newMessage.trim()}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 p-3 lg:p-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-5 w-5 lg:h-6 lg:w-6" />
                 </Button>
               </div>
               
@@ -1122,15 +1167,15 @@ const WorkingMessageCenter: React.FC = () => {
               {showEmojiPicker && (
                 <div 
                   ref={emojiPickerRef}
-                  className="absolute bottom-full right-0 mb-2 z-50"
+                  className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 z-50 w-80 lg:w-96"
                 >
-                  <div className="bg-white border rounded-lg shadow-lg p-3 max-w-xs">
+                  <div className="bg-white border rounded-2xl shadow-2xl p-4">
                     {/* عنوان منتقي الإيموجي */}
-                    <div className="text-center mb-2 pb-2 border-b">
-                      <h4 className="text-sm font-medium text-gray-700">اختر الإيموجي</h4>
+                    <div className="text-center mb-4 pb-3 border-b">
+                      <h4 className="text-base font-bold text-gray-800">اختر الإيموجي</h4>
                     </div>
                     
-                    <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
+                    <div className="grid grid-cols-8 gap-2 max-h-64 overflow-y-auto">
                       {[
                         '😊', '😂', '❤️', '👍', '👎', '🎉', '🔥', '💯', 
                         '😍', '🤔', '😭', '😡', '😱', '😴', '🤗', '😎',
@@ -1143,9 +1188,8 @@ const WorkingMessageCenter: React.FC = () => {
                           key={emoji}
                           onClick={() => {
                             setNewMessage(prev => prev + emoji);
-                            // لا نغلق منتقي الإيموجي للسماح بالاختيار المتعدد
                           }}
-                          className="p-2 hover:bg-blue-50 hover:scale-105 rounded text-lg transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="p-3 hover:bg-blue-50 hover:scale-110 rounded-xl text-xl lg:text-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-95"
                           title={emoji}
                         >
                           {emoji}
@@ -1154,18 +1198,18 @@ const WorkingMessageCenter: React.FC = () => {
                     </div>
                     
                     {/* أزرار التحكم */}
-                    <div className="mt-2 pt-2 border-t flex gap-2">
+                    <div className="mt-4 pt-3 border-t flex gap-3">
                       <Button
                         onClick={() => setShowEmojiPicker(false)}
-                        className="flex-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700"
+                        className="flex-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl py-2"
                       >
                         إغلاق
                       </Button>
                       <Button
                         onClick={() => setNewMessage('')}
-                        className="text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3"
+                        className="text-sm bg-red-100 hover:bg-red-200 text-red-700 px-4 rounded-xl py-2"
                       >
-                        مسح
+                        مسح الكل
                       </Button>
                     </div>
                   </div>
@@ -1174,20 +1218,36 @@ const WorkingMessageCenter: React.FC = () => {
             </div>
           </div>
         ) : (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center text-gray-500">
-            <MessageSquare className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-semibold mb-2">مرحباً بك في مركز الرسائل</h3>
-            <p className="text-sm mb-4">اختر محادثة من القائمة أو ابدأ محادثة جديدة</p>
-            <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>جاهز للتواصل</span>
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="text-center text-gray-500 max-w-md">
+              <div className="w-24 h-24 lg:w-32 lg:h-32 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+                <MessageSquare className="h-12 w-12 lg:h-16 lg:w-16 text-blue-500" />
               </div>
-                <div className="mt-4 text-xs text-gray-400">
-                {contactsLoading
-                  ? 'جاري تحميل جهات الاتصال...'
-                  : `${contacts.length} جهة اتصال متاحة`}
+              <h3 className="text-xl lg:text-2xl font-bold mb-3 text-gray-800">مرحباً بك في مركز الرسائل</h3>
+              <p className="text-base lg:text-lg text-gray-600 mb-6">اختر محادثة من القائمة أو ابدأ محادثة جديدة مع جهات الاتصال</p>
+              
+              <div className="flex flex-col lg:flex-row items-center justify-center gap-4 text-sm text-gray-500">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  <span>جاهز للتواصل</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-500" />
+                  <span>
+                    {contactsLoading
+                      ? 'جاري تحميل جهات الاتصال...'
+                      : `${contacts.length} جهة اتصال متاحة`}
+                  </span>
+                </div>
+              </div>
+              
+              <Button 
+                className="mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-2xl lg:hidden"
+                onClick={() => setShowNewChat(true)}
+              >
+                <Plus className="h-5 w-5 ml-2" />
+                بدء محادثة جديدة
+              </Button>
             </div>
           </div>
         )}
@@ -1195,34 +1255,42 @@ const WorkingMessageCenter: React.FC = () => {
 
       {/* نافذة إنشاء محادثة جديدة */}
       {showNewChat && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-96 max-h-[80vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md lg:max-w-lg max-h-[90vh] overflow-hidden">
             {/* Header */}
-            <div className="bg-green-600 text-white p-4">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">محادثة جديدة</h3>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <Plus className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-xl font-bold">محادثة جديدة</h3>
+                </div>
                 <Button
-                  className="text-white hover:bg-white/20 bg-transparent border-none p-2"
+                  className="text-white hover:bg-white/20 bg-transparent border-none p-2 rounded-full"
                   onClick={closeNewChat}
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-6 w-6" />
                 </Button>
               </div>
             </div>
 
             {/* شريط البحث */}
-            <div className="p-4 pb-0">
-              <Input
-                type="text"
-                placeholder="ابحث بالاسم أو اسم المنظمة..."
-                value={newChatSearchTerm}
-                onChange={(e) => setNewChatSearchTerm(e.target.value)}
-                className="w-full"
-              />
+            <div className="p-6 pb-4">
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="ابحث بالاسم أو اسم المنظمة..."
+                  value={newChatSearchTerm}
+                  onChange={(e) => setNewChatSearchTerm(e.target.value)}
+                  className="w-full pr-12 pl-4 h-12 bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl text-base"
+                />
+                <Search className="h-5 w-5 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
             </div>
 
             {/* أدوات التصفية */}
-            <div className="p-4 pt-0">
+            <div className="px-6 pb-4">
               <div className="flex gap-2 flex-wrap">
                 {[
                   { key: 'all', label: 'الكل' },
@@ -1231,13 +1299,14 @@ const WorkingMessageCenter: React.FC = () => {
                   { key: 'academy', label: 'أكاديمية' },
                   { key: 'agent', label: 'وكيل' },
                   { key: 'trainer', label: 'مدرب' },
-                  { key: 'admin', label: 'مدير' },
                 ].map((opt: any) => (
                   <button
                     key={opt.key}
                     onClick={() => setFilterType(opt.key)}
-                    className={`text-xs px-2 py-1 rounded border ${
-                      filterType === opt.key ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-300'
+                    className={`text-sm px-4 py-2 rounded-xl border-2 transition-all duration-200 ${
+                      filterType === opt.key 
+                        ? 'bg-blue-600 text-white border-blue-600' 
+                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300'
                     }`}
                   >
                     {opt.label}
@@ -1247,9 +1316,9 @@ const WorkingMessageCenter: React.FC = () => {
             </div>
 
             {/* قائمة جهات الاتصال */}
-            <div className="p-4 max-h-[60vh] overflow-y-auto">
+            <div className="px-6 pb-6 max-h-[60vh] overflow-y-auto">
               {contacts.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {contacts
                     .filter((c) => filterType === 'all' ? true : c.type === filterType)
                     .filter((c) => {
@@ -1265,46 +1334,43 @@ const WorkingMessageCenter: React.FC = () => {
                     return (
                       <div
                         key={contact.id}
-                        className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                        className="flex items-center gap-4 p-4 hover:bg-blue-50 rounded-xl cursor-pointer transition-all duration-200 border border-transparent hover:border-blue-200 active:scale-98"
                         onClick={() => createNewConversation(contact)}
                       >
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage 
-                            src={contact.avatar} 
-                            alt={contact.name}
-                            onError={(e) => {
-                              console.log('❌ Error loading avatar image in new chat:', e);
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                            onLoad={(e) => {
-                              console.log('✅ Avatar image loaded successfully in new chat');
-                            }}
-                            className="transition-opacity duration-500 ease-out hover:scale-105"
-                          />
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white animate-pulse">
-                            <UserIcon className="h-6 w-6" />
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar className="h-14 w-14 ring-2 ring-white shadow-sm">
+                            <AvatarImage 
+                              src={contact.avatar} 
+                              alt={contact.name}
+                              className="transition-transform duration-200 hover:scale-105"
+                            />
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-semibold">
+                              <UserIcon className="h-7 w-7" />
+                            </AvatarFallback>
+                          </Avatar>
+                          {contact.isOnline && (
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                          )}
+                        </div>
+                        
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-semibold text-sm truncate">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-bold text-base text-gray-900 truncate">
                               {contact.name}
                             </h4>
-                            <div className="flex items-center gap-1">
-                              <Badge className="text-xs border border-gray-300 bg-white text-gray-700">
+                            <div className="flex items-center gap-2">
+                              <Badge className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 border-0">
                                 {USER_TYPES[contact.type as keyof typeof USER_TYPES]?.name}
                               </Badge>
-                                {contact.type === 'player' && contact.isDependent && (
-                                  <Badge className="text-[10px] bg-yellow-100 text-yellow-700 border border-yellow-300">تابع</Badge>
-                                )}
-                              {contact.isOnline && (
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              {contact.type === 'player' && contact.isDependent && (
+                                <Badge className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 border-0">
+                                  تابع
+                                </Badge>
                               )}
                             </div>
                           </div>
                           {contact.organizationName && (
-                            <p className="text-xs text-gray-500 truncate">
+                            <p className="text-sm text-gray-500 truncate">
                               {contact.organizationName}
                             </p>
                           )}
@@ -1314,13 +1380,15 @@ const WorkingMessageCenter: React.FC = () => {
                   })}
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-8">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-semibold mb-2">
+                <div className="text-center text-gray-500 py-12">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Users className="h-10 w-10 text-gray-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-800">
                     {contactsLoading ? 'جاري تحميل جهات الاتصال...' : 'لا توجد جهات اتصال'}
                   </h3>
                   {!contactsLoading && (
-                  <p className="text-sm">لا يمكن إنشاء محادثة جديدة في الوقت الحالي</p>
+                    <p className="text-sm text-gray-600">لا يمكن إنشاء محادثة جديدة في الوقت الحالي</p>
                   )}
                 </div>
               )}

@@ -417,6 +417,45 @@ const Sidebar = () => {
     }
   ];
 
+  // قائمة الإدارة مع الترجمة
+  const adminMenuItems = [
+    {
+      title: 'sidebar.admin.home',
+      icon: <Home className="w-5 h-5" />,
+      path: '/dashboard/admin'
+    },
+    {
+      title: 'sidebar.admin.payments',
+      icon: <CreditCard className="w-5 h-5" />,
+      path: '/dashboard/admin/payments'
+    },
+    {
+      title: 'sidebar.admin.notifications',
+      icon: <Bell className="w-5 h-5" />,
+      path: '/dashboard/admin/notifications'
+    },
+    {
+      title: 'sidebar.admin.videos',
+      icon: <VideoIcon className="w-5 h-5" />,
+      path: '/dashboard/admin/videos'
+    },
+    {
+      title: 'sidebar.admin.users',
+      icon: <Users className="w-5 h-5" />,
+      path: '/dashboard/admin/users'
+    },
+    {
+      title: 'sidebar.admin.stats',
+      icon: <BarChart3 className="w-5 h-5" />,
+      path: '/dashboard/admin/stats'
+    },
+    {
+      title: 'sidebar.admin.settings',
+      icon: <KeyRound className="w-5 h-5" />,
+      path: '/dashboard/admin/settings'
+    }
+  ];
+
   // تحديد القائمة المناسبة حسب نوع الحساب
   const getMenuItems = () => {
     if (!user) return playerMenuItems;
@@ -425,6 +464,8 @@ const Sidebar = () => {
     const accountType = userData?.accountType || 'player';
     
     switch (accountType) {
+      case 'admin':
+        return adminMenuItems;
       case 'club':
         return clubMenuItems;
       case 'agent':

@@ -39,9 +39,12 @@ import CreateLoginAccountButton from '@/components/ui/CreateLoginAccountButton';
 import LoginAccountStatus from '@/components/ui/LoginAccountStatus';
 import IndependentAccountCreator from '@/components/ui/IndependentAccountCreator';
 import { toast } from 'react-toastify';
+import { organizationReferralService } from '@/lib/organization/organization-referral-service';
+import { PlayerJoinRequest } from '@/types/organization-referral';
+import OrgReferralSummaryCard from '@/components/referrals/OrgReferralSummaryCard';
 
 export default function ClubPlayersPage() {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,12 +58,15 @@ export default function ClubPlayersPage() {
   const [playersPerPage, setPlayersPerPage] = useState(10);
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [joinRequests, setJoinRequests] = useState<PlayerJoinRequest[]>([]);
+  const [showJoinRequests, setShowJoinRequests] = useState(false);
 
   useEffect(() => {
     console.log('🔍 حالة المصادقة:', { user: user?.uid, loading: !user });
     if (user?.uid) {
       console.log('✅ النادي مصادق - جاري تحميل اللاعبين...');
       loadPlayers();
+      loadJoinRequests();
     } else {
       console.log('⚠️ النادي غير مصادق أو لا يزال يتم التحميل');
     }
@@ -74,16 +80,14 @@ export default function ClubPlayersPage() {
       
       const baseQuery = query(
         collection(db, 'players'),
-        where('club_id', '==', user?.uid),
-        where('isDeleted', '!=', true)
+        where('club_id', '==', user?.uid)
       );
 
       const snapshot = await getDocs(baseQuery);
       
-      const playersData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Player[];
+      const playersData = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter((p: any) => !p.isDeleted) as Player[];
       
       // Manual sorting on the client-side
       playersData.sort((a, b) => {
@@ -103,6 +107,15 @@ export default function ClubPlayersPage() {
     }
   };
 
+  const loadJoinRequests = async () => {
+    try {
+      const requests = await organizationReferralService.getOrganizationJoinRequests(user!.uid, 'pending');
+      setJoinRequests(requests);
+    } catch (error) {
+      console.error('خطأ في تحميل طلبات الانضمام:', error);
+    }
+  };
+
   // Filter, search, sort and paginate players
   const filteredPlayers = players.filter(player => {
     const playerName = player.full_name || (player as Player & { name?: string }).name || '';
@@ -117,6 +130,32 @@ export default function ClubPlayersPage() {
     
     return matchesSearch && matchesFilter;
   });
+
+  // تحديد اكتمال الملف الشخصي
+  const isProfileComplete = (p: Player) => {
+    const hasName = Boolean(p.full_name || (p as any).name);
+    const hasPhone = Boolean(p.phone);
+    const hasCountry = Boolean(p.country);
+    const hasPosition = Boolean(p.primary_position || (p as any).position);
+    const hasMedia = Boolean((p as any).videos?.length || (p as any).additional_images?.length);
+    return hasName && hasPhone && hasCountry && hasPosition && hasMedia;
+  };
+
+  const getProfileCompletion = (p: Player) => {
+    const checkpoints: boolean[] = [
+      Boolean(p.full_name || (p as any).name),
+      Boolean(p.phone),
+      Boolean(p.country),
+      Boolean(p.primary_position || (p as any).position),
+      Boolean(p.height),
+      Boolean(p.weight),
+      Boolean((p as any).videos && (p as any).videos.length > 0),
+      Boolean((p as any).additional_images && (p as any).additional_images.length > 0),
+      Boolean((p as any).birth_date)
+    ];
+    const done = checkpoints.filter(Boolean).length;
+    return Math.round((done / checkpoints.length) * 100);
+  };
 
   // Sort players
   const sortedPlayers = [...filteredPlayers].sort((a, b) => {
@@ -385,6 +424,8 @@ export default function ClubPlayersPage() {
   return (
     <main className="flex-1 p-6 mx-4 my-6 bg-gray-50 rounded-lg shadow-inner md:p-10" dir="rtl">
       <div className="space-y-6">
+        {/* Referrals summary card */}
+        <OrgReferralSummaryCard accountType="club" />
         
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -486,60 +527,28 @@ export default function ClubPlayersPage() {
           </Select>
         </div>
 
-        {/* Players Table */}
-        {currentPlayers.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">لا توجد نتائج</h3>
-            <p className="text-gray-500 mb-6">
-              {searchTerm || filterStatus !== 'all' 
-                ? 'لم يتم العثور على لاعبين يطابقون معايير البحث' 
-                : 'لم يتم إضافة أي لاعبين للنادي بعد'
-              }
-            </p>
-            {(!searchTerm && filterStatus === 'all') && (
-              <Link href="/dashboard/club/players/add">
-                <Button className="bg-cyan-600 hover:bg-cyan-700 text-white">
-                  <Plus className="mr-2 w-4 h-4" />
-                  إضافة لاعب جديد
-                </Button>
-              </Link>
-            )}
-          </Card>
-        ) : (
+        {/* Players joined via referral code */}
           <Card className="overflow-hidden">
+          <div className="p-4 border-b">
+            <h3 className="font-bold text-gray-800">اللاعبون المنضمون عبر كود الانضمام ({currentPlayers.filter(p => (p as any).joinedViaReferral).length})</h3>
+          </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
-                    <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">
-                      اللاعب
-                    </th>
-                    <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">
-                      معلومات الاتصال
-                    </th>
-                    <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">
-                      المركز والمقاسات
-                    </th>
-                    <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">
-                      الموقع
-                    </th>
-                    <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">
-                      الاشتراك
-                    </th>
-                    <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">
-                      الوسائط
-                    </th>
-                    <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">
-                      التواريخ
-                    </th>
-                    <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">
-                      العمليات
-                    </th>
+                <tr className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">اللاعب</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">معلومات الاتصال</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">المركز والمقاسات</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">الموقع</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">الاشتراك</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">الوسائط</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">التواريخ</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">الانضمام عبر كود</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">العمليات</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentPlayers.map((player) => (
+                {currentPlayers.filter(p => (p as any).joinedViaReferral).map((player) => (
                     <tr key={player.id} className="hover:bg-gray-50 transition-colors">
                       {/* Player Info */}
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -573,6 +582,20 @@ export default function ClubPlayersPage() {
                             <div className="text-xs text-gray-400">
                               #{player.id?.slice(0, 8)}
                             </div>
+                            {player.joinedViaReferral && (
+                              <div className="mt-1 space-y-1">
+                                <div className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                                  انضم عبر كود
+                                  {player.referralCodeUsed && <span className="font-mono">({player.referralCodeUsed})</span>}
+                                </div>
+                                <div className="text-[11px] text-gray-500">
+                                  تاريخ الانضمام: {formatDate(player.organizationJoinedAt)}
+                                  {player.organizationApprovedBy?.userName && (
+                                    <span className="ml-2">— بواسطة: {player.organizationApprovedBy.userName}</span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                             {(() => {
                               const parentLabels: string[] = [];
                               if ((player as any)?.club_id) parentLabels.push('نادي');
@@ -610,6 +633,16 @@ export default function ClubPlayersPage() {
                           <div className="flex gap-1 items-center">
                             <Mail className="w-3 h-3 text-gray-400" />
                             <span className="text-xs">{player.email || 'غير محدد'}</span>
+                          </div>
+                          <div className="mt-2">
+                            {(() => { const pct = getProfileCompletion(player); return (
+                              <div>
+                                <div className="flex items-center justify-between text-[11px] text-gray-500"><span>اكتمال الملف</span><span>{pct}%</span></div>
+                                <div className="w-32 h-1.5 bg-gray-200 rounded">
+                                  <div className={`h-1.5 rounded ${pct>=80?'bg-emerald-500':pct>=50?'bg-amber-500':'bg-red-500'}`} style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            ); })()}
                           </div>
                         </div>
                       </td>
@@ -699,6 +732,15 @@ export default function ClubPlayersPage() {
                         </div>
                       </td>
 
+                      {/* Referral Info */}
+                      <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-700">
+                        <div>الكود: {player.referralCodeUsed || '-'}</div>
+                        <div>التاريخ: {formatDate((player as any).organizationJoinedAt)}</div>
+                        { (player as any).organizationApprovedBy?.userName && (
+                          <div>الموافق: {(player as any).organizationApprovedBy.userName}</div>
+                        )}
+                      </td>
+
                       {/* Actions */}
                       <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                         <div className="flex gap-2">
@@ -715,10 +757,13 @@ export default function ClubPlayersPage() {
                           
                           {player.id && (
                             <SendMessageButton
+                              user={user}
+                              userData={userData}
+                              getUserDisplayName={() => (userData as any)?.full_name || (userData as any)?.name || user?.email || 'مستخدم'}
                               targetUserId={player.id}
                               targetUserName={player.full_name || player.name || 'لاعب'}
                               targetUserType="player"
-                              buttonText=""
+                              buttonText="رسالة"
                               buttonVariant="outline"
                               buttonSize="sm"
                               className="text-blue-600 hover:bg-blue-50"
@@ -776,7 +821,96 @@ export default function ClubPlayersPage() {
               </table>
             </div>
           </Card>
-        )}
+
+        {/* Players added manually by organization */}
+        <Card className="overflow-hidden mt-6">
+          <div className="p-4 border-b">
+            <h3 className="font-bold text-gray-800">اللاعبون المضافون بواسطة المنظمة ({currentPlayers.filter(p => !(p as any).joinedViaReferral).length})</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">اللاعب</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">معلومات الاتصال</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">المركز والمقاسات</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">الموقع</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">الاشتراك</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">الوسائط</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">التواريخ</th>
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-right uppercase">العمليات</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {currentPlayers.filter(p => !(p as any).joinedViaReferral).map((player) => (
+                  <tr key={player.id} className="hover:bg-gray-50 transition-colors">
+                    {/* Player Info */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 w-12 h-12">
+                          {player.profile_image_url || player.profile_image ? (
+                            <img
+                              src={player.profile_image_url || player.profile_image}
+                              alt={`صورة اللاعب ${player.full_name || player.name || 'غير محدد'}`}
+                              className="object-cover w-12 h-12 rounded-full border border-gray-200"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "/images/default-avatar.png";
+                              }}
+                            />
+                          ) : (
+                            <div className="flex justify-center items-center w-12 h-12 bg-gray-200 rounded-full border border-gray-300">
+                              <User className="w-6 h-6 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="mr-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {player.full_name || player.name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {(() => {
+                              const age = calculateAge(player.birth_date);
+                              return age ? `${age} سنة` : 'العمر غير محدد';
+                            })()}
+                          </div>
+                          <div className="text-xs text-gray-400">#{player.id?.slice(0, 8)}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* reuse same other columns by copying existing cells */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        <div className="flex gap-1 items-center mb-1"><Phone className="w-3 h-3 text-gray-400" />{player.phone || 'غير محدد'}</div>
+                        <div className="flex gap-1 items-center"><Mail className="w-3 h-3 text-gray-400" /><span className="text-xs">{player.email || 'غير محدد'}</span></div>
+                        <div className="mt-2">{(() => { const pct = getProfileCompletion(player); return (
+                          <div>
+                            <div className="flex items-center justify-between text-[11px] text-gray-500"><span>اكتمال الملف</span><span>{pct}%</span></div>
+                            <div className="w-32 h-1.5 bg-gray-200 rounded">
+                              <div className={`h-1.5 rounded ${pct>=80?'bg-emerald-500':pct>=50?'bg-amber-500':'bg-red-500'}`} style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        ); })()}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        <div className="font-medium">{player.primary_position || player.position || 'غير محدد'}</div>
+                        {player.secondary_position && (<div className="text-xs text-gray-500">ثانوي: {player.secondary_position}</div>)}
+                        <div className="mt-1 text-xs text-gray-500">{player.height && `${player.height} سم`}{player.height && player.weight && ' • '}{player.weight && `${player.weight} كج`}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900"><div className="flex gap-1 items-center mb-1"><MapPin className="w-3 h-3 text-gray-400" />{player.city || 'غير محدد'}</div><div className="text-xs text-gray-500">{player.nationality || player.country || 'غير محدد'}</div></div></td>
+                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm">{getSubscriptionBadge(player.subscription_status, player.subscription_end)}<div className="mt-1 text-xs text-gray-500">{player.subscription_type && (<div>نوع: {player.subscription_type}</div>)}<div className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatDate(player.subscription_end)}</div></div></div></td>
+                    <td className="px-6 py-4 whitespace-nowrap"><div className="flex gap-2"><Badge variant="outline" className="text-xs"><Video className="mr-1 w-3 h-3" />{player.videos?.length || 0}</Badge><Badge variant="outline" className="text-xs"><ImageIcon className="mr-1 w-3 h-3" />{player.additional_images?.length || 0}</Badge></div></td>
+                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-xs text-gray-600"><div className="flex gap-1 items-center mb-1"><Plus className="w-3 h-3 text-green-600" /><span className="font-medium">إضافة:</span></div><div className="mb-2">{formatDate(player.createdAt || player.created_at)}<div className="text-gray-400">{getTimeAgo(player.createdAt || player.created_at)}</div></div><div className="flex gap-1 items-center mb-1"><Edit className="w-3 h-3 text-blue-600" /><span className="font-medium">تحديث:</span></div><div>{formatDate(player.updated_at)}<div className="text-gray-400">{getTimeAgo(player.updated_at)}</div></div></div></td>
+                    <td className="px-6 py-4 text-sm font-medium whitespace-nowrap"><div className="flex gap-2"><Link href={`/dashboard/club/players/add?edit=${player.id}`}><Button variant="outline" size="sm" className="text-green-600 hover:bg-green-50" title="تعديل البيانات"><Edit className="w-4 h-4" /></Button></Link><CreateLoginAccountButton playerId={player.id} playerData={{ full_name: player.full_name || player.name, name: player.name || player.full_name, email: player.email, phone: player.phone, club_id: (player as any).club_id || user?.uid, ...player }} source="players" onSuccess={(password) => { console.log(`تم إنشاء حساب للاعب ${player.full_name || player.name} بكلمة المرور: ${password}`); }} /><IndependentAccountCreator playerId={player.id} playerData={{ full_name: player.full_name || player.name, name: player.name || player.full_name, email: player.email, phone: player.phone, whatsapp: (player as any).whatsapp, club_id: (player as any).club_id || user?.uid, ...player }} source="players" variant="outline" size="sm" className="text-purple-600 hover:bg-purple-50" /><Button variant="outline" size="sm" onClick={() => handleDeletePlayer(player)} className="text-red-600 hover:bg-red-50" title="حذف اللاعب"><Trash2 className="w-4 h-4" /></Button></div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
 
         {/* Pagination */}
         {totalPages > 1 && (

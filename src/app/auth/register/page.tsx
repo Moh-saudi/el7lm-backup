@@ -9,6 +9,7 @@ import {
 import { useAuth } from '@/lib/firebase/auth-provider';
 // تم حذف الترجمة
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import {
   AlertTriangle,
@@ -20,6 +21,7 @@ import {
   Loader2,
   Lock,
   Phone,
+  Mail,
   Shield,
   Star,
   User,
@@ -49,6 +51,20 @@ const countries = [
   { name: 'الجزائر', code: '+213', currency: 'DZD', currencySymbol: 'د.ج', phoneLength: 9, phonePattern: '[0-9]{9}' },
   { name: 'تونس', code: '+216', currency: 'TND', currencySymbol: 'د.ت', phoneLength: 8, phonePattern: '[0-9]{8}' },
   { name: 'ليبيا', code: '+218', currency: 'LYD', currencySymbol: 'د.ل', phoneLength: 9, phonePattern: '[0-9]{9}' },
+  // مضافة حديثاً
+  { name: 'السودان', code: '+249', currency: 'SDG', currencySymbol: 'ج.س', phoneLength: 9, phonePattern: '[0-9]{9}' },
+  { name: 'السنغال', code: '+221', currency: 'XOF', currencySymbol: 'Fr', phoneLength: 9, phonePattern: '[0-9]{9}' },
+  { name: 'ساحل العاج', code: '+225', currency: 'XOF', currencySymbol: 'Fr', phoneLength: 10, phonePattern: '[0-9]{10}' },
+  { name: 'جيبوتي', code: '+253', currency: 'DJF', currencySymbol: 'Fr', phoneLength: 8, phonePattern: '[0-9]{8}' },
+  { name: 'إسبانيا', code: '+34', currency: 'EUR', currencySymbol: '€', phoneLength: 9, phonePattern: '[0-9]{9}' },
+  { name: 'فرنسا', code: '+33', currency: 'EUR', currencySymbol: '€', phoneLength: 9, phonePattern: '[0-9]{9}' },
+  { name: 'إنجلترا', code: '+44', currency: 'GBP', currencySymbol: '£', phoneLength: 10, phonePattern: '[0-9]{10}' },
+  { name: 'البرتغال', code: '+351', currency: 'EUR', currencySymbol: '€', phoneLength: 9, phonePattern: '[0-9]{9}' },
+  { name: 'إيطاليا', code: '+39', currency: 'EUR', currencySymbol: '€', phoneLength: 10, phonePattern: '[0-9]{10}' },
+  { name: 'اليونان', code: '+30', currency: 'EUR', currencySymbol: '€', phoneLength: 10, phonePattern: '[0-9]{10}' },
+  { name: 'قبرص', code: '+357', currency: 'EUR', currencySymbol: '€', phoneLength: 8, phonePattern: '[0-9]{8}' },
+  { name: 'تركيا', code: '+90', currency: 'TRY', currencySymbol: '₺', phoneLength: 10, phonePattern: '[0-9]{10}' },
+  { name: 'تايلاند', code: '+66', currency: 'THB', currencySymbol: '฿', phoneLength: 9, phonePattern: '[0-9]{9}' },
 ];
 
 // دالة للحصول على مسار لوحة التحكم حسب نوع الحساب
@@ -81,15 +97,34 @@ function normalizePhone(countryCode: string, phone: string) {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register: registerUser, loginWithGoogle, userData } = useAuth();
+  const { register: registerUser, userData } = useAuth();
   const t = (key: string) => key;
   const locale = 'ar';
   const isRTL = true;
   const [isClient, setIsClient] = useState(false);
+  const [step, setStep] = useState<number>(1);
+
+  // عبارات تسويقية متغيرة (يسار العنوان)
+  const rotatingTips = [
+    'ابدأ خلال دقيقة واحدة فقط',
+    'سجّل برقم هاتفك بسهولة',
+    'أضف بريدك الإلكتروني (اختياري)',
+    'ادخل كود الانضمام لربط حسابك',
+    'أمان وحماية لبياناتك دائمًا'
+  ];
+  const [tipIndex, setTipIndex] = useState(0);
 
   // التأكد من أننا على العميل
   useEffect(() => {
     setIsClient(true);
+  }, []);
+
+  // تدوير العبارات تلقائياً
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTipIndex((i) => (i + 1) % rotatingTips.length);
+    }, 3500);
+    return () => clearInterval(id);
   }, []);
   
   const [formData, setFormData] = useState({
@@ -102,7 +137,8 @@ export default function RegisterPage() {
     country: '',
     countryCode: '',
     currency: '',
-    currencySymbol: ''
+    currencySymbol: '',
+    organizationCode: ''
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -119,6 +155,10 @@ export default function RegisterPage() {
   const [enteredOTP, setEnteredOTP] = useState<string>('');
   const phoneCheckRef = useRef(false);
   const phoneCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [orgCodeChecking, setOrgCodeChecking] = useState(false);
+  const [orgCodeError, setOrgCodeError] = useState('');
+  const orgCodeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [orgPreview, setOrgPreview] = useState<{ name: string; type: string; logoUrl?: string } | null>(null);
 
   // تحقق من تكرار رقم الهاتف عند الكتابة
   const handlePhoneValidation = async (phoneNumber: string) => {
@@ -183,6 +223,70 @@ export default function RegisterPage() {
         [name]: numbersOnly
       }));
       handlePhoneValidation(numbersOnly);
+      return;
+    }
+
+    // التحقق من كود الانضمام (اختياري ولكن يتم التحقق عند الإدخال)
+    if (name === 'organizationCode') {
+      const cleaned = value.trim();
+      setFormData(prev => ({ ...prev, organizationCode: cleaned }));
+      // إلغاء أي تحقق سابق
+      if (orgCodeTimeoutRef.current) clearTimeout(orgCodeTimeoutRef.current);
+      // إذا كان الحقل فارغًا، نظّف الأخطاء
+      if (!cleaned) {
+        setOrgCodeError('');
+        setOrgCodeChecking(false);
+        setOrgPreview(null);
+        return;
+      }
+      orgCodeTimeoutRef.current = setTimeout(async () => {
+        try {
+          setOrgCodeChecking(true);
+          setOrgCodeError('');
+          const { organizationReferralService } = await import('@/lib/organization/organization-referral-service');
+          const { db } = await import('@/lib/firebase/config');
+          const { doc, getDoc } = await import('firebase/firestore');
+          const referral = await organizationReferralService.findReferralByCode(cleaned.toUpperCase());
+          if (!referral) {
+            setOrgCodeError('كود الانضمام غير صحيح');
+            setOrgPreview(null);
+          } else if (referral && referral.isActive === false) {
+            setOrgCodeError('كود الانضمام غير مفعل');
+            setOrgPreview(null);
+          } else if (typeof (referral as any).maxUsage === 'number' && (referral as any).maxUsage >= 0 && (referral as any).currentUsage >= (referral as any).maxUsage) {
+            setOrgCodeError('تم الوصول إلى الحد الأقصى لاستخدام هذا الكود');
+            setOrgPreview(null);
+          } else {
+            setOrgCodeError('');
+            // محاولة جلب صورة وشعار المنظمة من مجموعتها
+            let collectionName = '';
+            switch ((referral as any).organizationType) {
+              case 'club': collectionName = 'clubs'; break;
+              case 'academy': collectionName = 'academies'; break;
+              case 'agent': collectionName = 'agents'; break;
+              case 'trainer': collectionName = 'trainers'; break;
+              default: collectionName = '';
+            }
+            let logoUrl: string | undefined = undefined;
+            let orgName: string | undefined = (referral as any).organizationName;
+            if (collectionName) {
+              try {
+                const snap = await getDoc(doc(db, collectionName, (referral as any).organizationId));
+                const data: any = snap.exists() ? snap.data() : null;
+                logoUrl = data?.logo || data?.logoUrl || data?.image || data?.profileImage || data?.photoURL || undefined;
+                orgName = data?.name || data?.full_name || data?.displayName || orgName;
+              } catch {}
+            }
+            const type = (referral as any).organizationType;
+            setOrgPreview({ name: orgName || 'المنظمة', type, logoUrl });
+          }
+        } catch (err) {
+          setOrgCodeError('تعذر التحقق من كود الانضمام، حاول لاحقًا');
+          setOrgPreview(null);
+        } finally {
+          setOrgCodeChecking(false);
+        }
+      }, 500);
       return;
     }
 
@@ -252,6 +356,12 @@ export default function RegisterPage() {
       return false;
     }
 
+    // إذا كان كود الانضمام موجودًا يجب أن يكون صالحًا
+    if (formData.organizationCode && orgCodeError) {
+      setError(orgCodeError);
+      return false;
+    }
+
     return true;
   };
 
@@ -299,6 +409,21 @@ export default function RegisterPage() {
       );
       
       console.log('✅ Account created successfully (OTP disabled):', userData);
+
+      // معالجة كود الانضمام إذا تم إدخاله وكان الحساب لاعب
+      if (formData.organizationCode && formData.accountType === 'player') {
+        try {
+          const { organizationReferralService } = await import('@/lib/organization/organization-referral-service');
+          await organizationReferralService.createJoinRequest(
+            (userData as any).uid || (userData as any).id,
+            userData,
+            formData.organizationCode.trim()
+          );
+          console.log('✅ Join request created successfully');
+        } catch (joinErr) {
+          console.warn('⚠️ Join request failed:', joinErr);
+        }
+      }
       
       setLoading(false);
       
@@ -472,26 +597,52 @@ export default function RegisterPage() {
   };
 
   return (
-        <div className={`flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-600 to-purple-700 ${isClient && isRTL ? 'dir-rtl' : 'dir-ltr'}`}>
-        <div className="overflow-hidden w-full max-w-xl bg-white rounded-xl shadow-2xl">
-          {/* Header Section */}
-          <div className="p-6 text-center text-white bg-gradient-to-r from-blue-500 to-purple-600">
-            <div className="flex justify-center mb-4">
-              <Shield className="w-12 h-12" />
+    <div className={`${isClient && isRTL ? 'dir-rtl' : 'dir-ltr'} min-h-screen w-full flex items-center justify-center bg-purple-950 px-4 py-8`}>
+      {/* Centered compact card */}
+      <div className="w-full max-w-md rounded-2xl border border-purple-100 shadow-2xl backdrop-blur bg-white/95">
+        <div className="px-6 pt-6 pb-3">
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex gap-2 items-center text-purple-600">
+              <Shield className="w-6 h-6" />
+              <span className="text-base font-bold">El7lm</span>
             </div>
-                            <h1 className="mb-2 text-3xl font-bold">إنشاء حساب جديد</h1>
-                <p className="text-blue-100">انضم إلى منصة El7lm وابدأ رحلتك</p>
-            
-            {/* Language Switcher */}
-            <div className="flex justify-center mt-4">
-              {/* تم إلغاء مبدل اللغة مؤقتاً */}
+            <button type="button" onClick={() => router.push('/auth/login')} className="text-xs text-gray-600 hover:text-indigo-600">لديك حساب؟ تسجيل الدخول</button>
+          </div>
+          <div className="mb-2 text-center">
+            <h1 className="text-xl font-extrabold text-gray-900">إنشاء حساب جديد</h1>
+            <p className="mt-1 text-xs text-gray-500">انضم إلى منصة El7lm وابدأ رحلتك</p>
+            <div className="mt-1 min-h-[1rem]" aria-live="polite">
+              <span key={tipIndex} className="inline-block text-[11px] text-purple-600 transition-opacity duration-500 ease-in-out">{rotatingTips[tipIndex]}</span>
             </div>
           </div>
 
-          <form onSubmit={handleRegister} className="p-8 space-y-6">
+          {/* Progress indicator */}
+          <div className="px-6 pb-3">
+            <div className="flex items-center justify-center gap-1.5">
+              {[1,2,3,4].map(i => (
+                <span
+                  key={i}
+                  className={`inline-block w-6 h-1.5 rounded-full transition-all ${i <= step ? 'bg-purple-600' : 'bg-gray-200'}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              if (step < 4) {
+                e.preventDefault();
+                setStep(step + 1);
+                return;
+              }
+              handleRegister(e as any);
+            }}
+            className="px-6 pb-6 space-y-4"
+          >
+            <div className="space-y-4">
             {/* Error and Success Messages */}
             {error && (
-              <div className="flex gap-2 items-start p-4 text-red-700 bg-red-50 rounded-lg">
+                <div className="flex gap-2 items-start p-4 text-red-700 bg-red-50 rounded-lg" role="alert" aria-live="assertive">
                 <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   {typeof error === 'string' ? <p>{error}</p> : error}
@@ -504,16 +655,18 @@ export default function RegisterPage() {
                 <p>{message}</p>
               </div>
             )}
-
-            {/* Account Type Selection */}
-            <div className="grid grid-cols-3 gap-4">
-              {accountTypes.map(({ value, label, icon: Icon }) => (
+            {/* Step 1 - Account Type */}
+            {step === 1 && (
+              <div className="space-y-3">
+                <label className="block text-xs text-gray-600">اختر نوع الحساب</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {accountTypes.slice(0,4).map(({ value, label, icon: Icon }) => (
                 <label
                   key={value}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-lg cursor-pointer border-2 transition-all text-center ${
+                      className={`flex flex-col items-center gap-1.5 p-2 rounded-lg cursor-pointer border transition-all text-center ${
                     formData.accountType === value
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-blue-200'
+                          ? 'border-indigo-500 bg-indigo-50'
+                          : 'border-gray-200 hover:border-indigo-200'
                   }`}
                 >
                   <input
@@ -524,24 +677,49 @@ export default function RegisterPage() {
                     onChange={handleInputChange}
                     className="hidden"
                   />
-                  <Icon className={`h-6 w-6 ${formData.accountType === value ? 'text-blue-500' : 'text-gray-400'}`} />
-                  <span className={`text-sm font-medium ${formData.accountType === value ? 'text-blue-700' : 'text-gray-600'}`}>{label}</span>
+                      <Icon className={`h-4 w-4 ${formData.accountType === value ? 'text-indigo-600' : 'text-gray-400'}`} />
+                      <span className={`text-[11px] font-medium ${formData.accountType === value ? 'text-indigo-700' : 'text-gray-600'}`}>{label}</span>
                 </label>
               ))}
             </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {accountTypes.slice(4).map(({ value, label, icon: Icon }) => (
+                    <label
+                      key={value}
+                      className={`flex flex-col items-center gap-1.5 p-2 rounded-lg cursor-pointer border transition-all text-center ${
+                        formData.accountType === value
+                          ? 'border-indigo-500 bg-indigo-50'
+                          : 'border-gray-200 hover:border-indigo-200'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="accountType"
+                        value={value}
+                        checked={formData.accountType === value}
+                        onChange={handleInputChange}
+                        className="hidden"
+                      />
+                      <Icon className={`h-4 w-4 ${formData.accountType === value ? 'text-indigo-600' : 'text-gray-400'}`} />
+                      <span className={`text-[11px] font-medium ${formData.accountType === value ? 'text-indigo-700' : 'text-gray-600'}`}>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
-            {/* Form Fields */}
-            <div className="space-y-4">
-              {/* Full Name Input */}
+            {/* Step 2 - Personal + Phone */}
+            {step === 2 && (
+              <div className="space-y-3">
               <div>
-                <label className="block mb-2 text-gray-700">الاسم الكامل</label>
+                  <label className="block mb-1.5 text-gray-700 text-sm">الاسم الكامل</label>
                 <div className="relative">
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="py-3 pr-10 pl-4 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="py-2 pr-10 pl-4 w-full text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="أدخل اسمك الكامل"
                     required
                     maxLength={50}
@@ -549,17 +727,17 @@ export default function RegisterPage() {
                   <User className="absolute right-3 top-1/2 w-5 h-5 text-gray-400 -translate-y-1/2" />
                 </div>
               </div>
-
-              {/* Country Selection */}
               <div>
-                <label className="block mb-2 text-gray-700">البلد</label>
-                <div className="relative">
+                  <label htmlFor="country" className="block mb-1.5 text-gray-700 text-sm">البلد</label>
                   <select
+                    id="country"
                     name="country"
                     value={formData.country}
                     onChange={(e) => handleCountryChange(e.target.value)}
-                    className="py-3 pr-10 pl-4 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="py-2 pr-10 pl-4 w-full text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     required
+                    title="اختيار البلد"
+                    aria-label="البلد"
                   >
                     <option value="">اختر البلد</option>
                     {countries.map((country) => (
@@ -569,21 +747,11 @@ export default function RegisterPage() {
                     ))}
                   </select>
                 </div>
-              </div>
-
-              {/* Phone Input */}
               <div>
-                <label className="block mb-2 text-gray-700">
-                  رقم الهاتف
-                  {selectedCountry && (
-                    <span className="ml-2 text-sm text-gray-500">
-                      ({selectedCountry.phoneLength} أرقام)
-                    </span>
-                  )}
-                </label>
+                  <label className="block mb-1.5 text-gray-700 text-sm">رقم الهاتف</label>
                 <div className="relative">
                   <div className="flex">
-                    <div className="flex items-center px-3 bg-gray-50 rounded-l-lg border border-r-0 border-gray-300">
+                      <div className="flex items-center px-2 text-xs bg-gray-50 rounded-l-lg border border-r-0 border-gray-300">
                       {formData.countryCode || '+966'}
                     </div>
                     <input
@@ -591,261 +759,170 @@ export default function RegisterPage() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className={`w-full py-3 pl-12 pr-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300 ${phoneExistsError ? 'border-red-300 focus:ring-red-500' : phoneCheckLoading ? 'border-blue-300 focus:ring-blue-500' : 'border-gray-300 focus:ring-blue-500'}`}
-                      placeholder={selectedCountry ? `${selectedCountry.phoneLength} أرقام` : "رقم الهاتف"}
+                        className={`w-full py-2 pl-10 pr-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent border-gray-300 text-sm ${phoneExistsError ? 'border-red-300 focus:ring-red-500' : phoneCheckLoading ? 'border-purple-300 focus:ring-purple-500' : 'border-gray-300 focus:ring-purple-500'}`}
+                        placeholder={selectedCountry ? `${selectedCountry.phoneLength} أرقام` : 'أدخل رقم الهاتف'}
                       required
                       maxLength={selectedCountry?.phoneLength || 10}
-                    />
-                    {phoneCheckLoading ? (
-                      <Loader2 className="absolute right-2 top-1/2 w-5 h-5 text-blue-500 animate-spin -translate-y-1/2" />
-                    ) : phoneExistsError ? (
-                      <X className="absolute right-2 top-1/2 w-5 h-5 text-red-500 -translate-y-1/2" />
-                    ) : formData.phone.length >= 6 && !phoneExistsError ? (
-                      <Check className="absolute right-2 top-1/2 w-5 h-5 text-green-500 -translate-y-1/2" />
-                    ) : (
-                      <Phone className="absolute right-2 top-1/2 w-5 h-5 text-gray-400 -translate-y-1/2" />
+                        aria-label="رقم الهاتف"
+                        title="رقم الهاتف"
+                      />
+                      {phoneExistsError && (
+                        <p className="mt-1 text-xs text-red-600" role="alert" aria-live="polite">{phoneExistsError}</p>
                     )}
                   </div>
-                  {/* توضيح خاص لكل دولة */}
-                  {selectedCountry && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      {selectedCountry.name === 'مصر' ? '10 أرقام بدون الصفر في البداية' :
-                       selectedCountry.name === 'قطر' ? '8 أرقام بدون الصفر في البداية' :
-                       selectedCountry.name === 'السعودية' ? '9 أرقام بدون الصفر في البداية' :
-                       `${selectedCountry.phoneLength} أرقام`}
-                    </p>
-                  )}
-                  {phoneExistsError && (
-                    <p className="mt-1 text-xs text-red-500">{phoneExistsError}</p>
-                  )}
+                  </div>
                 </div>
               </div>
+            )}
 
-              {/* Password Input */}
+            {/* Step 3 - Optional contact */}
+            {step === 3 && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block mb-1.5 text-gray-700 text-sm">البريد الإلكتروني (اختياري)</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      name="email"
+                      value={(formData as any).email || ''}
+                      onChange={handleInputChange}
+                      className="py-2 pr-10 pl-4 w-full text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      placeholder="example@mail.com"
+                    />
+                    <Mail className="absolute right-3 top-1/2 w-5 h-5 text-gray-400 -translate-y-1/2" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block mb-1.5 text-gray-700 text-sm">كود الانضمام (اختياري)</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="organizationCode"
+                      value={formData.organizationCode}
+                      onChange={handleInputChange}
+                      className={`py-2 pr-10 pl-4 w-full text-sm rounded-lg border focus:ring-2 focus:border-transparent ${orgCodeError ? 'border-red-300 focus:ring-red-500' : orgCodeChecking ? 'border-purple-300 focus:ring-purple-500' : 'border-gray-300 focus:ring-indigo-500'}`}
+                      placeholder="أدخل كود الانضمام إذا كان لديك"
+                      aria-label="كود الانضمام"
+                      title="كود الانضمام"
+                    />
+                    <Users className="absolute right-3 top-1/2 w-5 h-5 text-gray-400 -translate-y-1/2" />
+                    {orgCodeChecking && (
+                      <div className="absolute left-3 top-1/2 text-purple-500 -translate-y-1/2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      </div>
+                    )}
+                    {orgCodeError && (
+                      <p className="mt-1 text-xs text-red-600" role="alert" aria-live="polite">{orgCodeError}</p>
+                    )}
+                    {orgPreview && !orgCodeError && (
+                      <div className="flex gap-2 items-center p-2 mt-2 bg-gray-50 rounded-lg border">
+                        {orgPreview.logoUrl ? (
+                          <Image src={orgPreview.logoUrl} alt={orgPreview.name} width={28} height={28} className="rounded" />
+                        ) : (
+                          <Users className="w-5 h-5 text-gray-400" />
+                        )}
+                        <div className="text-sm">
+                          <div className="font-semibold text-gray-800">{orgPreview.name}</div>
+                          <div className="text-xs text-gray-500">نوع المنظمة: {orgPreview.type}</div>
+                </div>
+              </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4 - Password + terms */}
+            {step === 4 && (
+              <div className="space-y-3">
               <div>
-                <label className="block mb-2 text-gray-700">كلمة المرور</label>
+                  <label className="block mb-1.5 text-gray-700 text-sm">كلمة المرور</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="py-3 pr-10 pl-12 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="py-2 pr-10 pl-10 w-full text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="8 أحرف على الأقل"
                     required
                     minLength={8}
                   />
                   <Lock className="absolute right-3 top-1/2 w-5 h-5 text-gray-400 -translate-y-1/2" />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-3 top-1/2 text-gray-400 -translate-y-1/2 hover:text-gray-600"
-                  >
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3 top-1/2 text-gray-400 -translate-y-1/2 hover:text-gray-600">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
-          
-              {/* Confirm Password Input */}
               <div>
-                <label className="block mb-2 text-gray-700">تأكيد كلمة المرور</label>
+                  <label className="block mb-1.5 text-gray-700 text-sm">تأكيد كلمة المرور</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="py-3 pr-10 pl-12 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="py-2 pr-10 pl-10 w-full text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="أعد إدخال كلمة المرور"
                     required
                   />
                   <Lock className="absolute right-3 top-1/2 w-5 h-5 text-gray-400 -translate-y-1/2" />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-3 top-1/2 text-gray-400 -translate-y-1/2 hover:text-gray-600"
-                  >
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3 top-1/2 text-gray-400 -translate-y-1/2 hover:text-gray-600">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
+            <div className="flex gap-2 items-center">
+                  <input type="checkbox" name="agreeToTerms" checked={formData.agreeToTerms} onChange={handleInputChange} className="w-4 h-4 text-indigo-600 rounded" title="الموافقة على الشروط" aria-label="الموافقة على الشروط" />
+                  <span className="text-sm text-gray-600">أوافق على <button type="button" className="ml-1 text-indigo-600 hover:underline" onClick={() => setShowTerms(true)}>الشروط والأحكام</button></span>
+                </div>
+              </div>
+            )}
             </div>
 
             {/* Terms and Submit */}
-            <div className="flex gap-2 items-center">
-              <input
-                type="checkbox"
-                name="agreeToTerms"
-                checked={formData.agreeToTerms}
-                onChange={handleInputChange}
-                className="w-4 h-4 text-blue-600 rounded"
-              />
-              <span className="text-base text-gray-600">أوافق على
-                <button type="button" className="ml-1 text-blue-600 hover:underline" onClick={() => setShowTerms(true)}>
-                الشروط والأحكام
-                </button>
-              </span>
-            </div>
-
+            <div className="flex gap-2 justify-between items-center pt-1">
+              {step > 1 ? (
+                <button type="button" onClick={() => setStep(step - 1)} className="px-3 py-2 text-xs text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50">السابق</button>
+              ) : <span />}
             <button
               type="submit"
-            disabled={loading || phoneCheckLoading || !!phoneExistsError}
-              className={`w-full py-4 rounded-lg text-white font-bold text-lg transition-all flex items-center justify-center gap-2 ${
-                loading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'
-              }`}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                جاري إنشاء الحساب...
-                </>
-              ) : (
-                <>
-                <Shield className="w-5 h-5" />
-                تسجيل
-                </>
-              )}
-            </button>
-
-            {/* Login Link */}
-            {!showPhoneVerification && (
-            <div className="space-y-2 text-center text-gray-600">
-              <div>
-                لديك حساب بالفعل؟{' '}
-                <button
-                  type="button"
-                  onClick={() => router.push('/auth/login')}
-                  className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
-                >
-                  تسجيل الدخول
+                disabled={loading || phoneCheckLoading || (!!phoneExistsError && step === 2) || (formData.organizationCode ? (orgCodeChecking || !!orgCodeError) : false)}
+                className={`px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all ${loading ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700'}`}
+              >
+                {loading ? 'جاري المعالجة...' : step < 4 ? 'التالي' : 'تسجيل'}
                 </button>
               </div>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => router.push('/auth/forgot-password')}
-                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
-                >
-                  نسيت كلمة المرور؟
-                </button>
+          </form>
               </div>
             </div>
-            )}
-          </form>
+      {/* Marketing panel (right) */}
+      <div className="hidden justify-center items-center p-6 h-full bg-purple-900 rounded-2xl md:col-span-6 md:flex">
+        <div className="w-full text-center text-white">
+          <div className="inline-flex items-center px-3 py-1 mb-6 text-sm text-white rounded-full bg-white/20">تقييم المستخدمين 4.6★</div>
+          <div className="p-6 rounded-2xl backdrop-blur-sm bg-white/10">
+            <blockquote className="text-lg leading-relaxed">"أكثر ما نحبه في المنصة أنك تبدأ بسرعة دون الحاجة لتعلّم الكثير. كل ما تحتاجه متاح بخطوات بسيطة."</blockquote>
+            <div className="mt-4 text-sm text-white/80">— مستخدم من مجتمع El7lm</div>
         </div>
-
+          <div className="mt-8 text-white/80">انضم لآلاف المستخدمين الذين يثقون بالمنصة في رحلتهم.</div>
+        </div>
+      </div>
         {/* Terms and Conditions Dialog */}
         <AlertDialog open={showTerms} onOpenChange={setShowTerms}>
-          <AlertDialogContent className="max-w-3xl">
+      <AlertDialogContent className="max-w-lg">
             <AlertDialogHeader>
-              <AlertDialogTitle className="mb-4 text-2xl font-bold">
-                الشروط والأحكام
-              </AlertDialogTitle>
+          <AlertDialogTitle>الشروط والأحكام</AlertDialogTitle>
             </AlertDialogHeader>
-            <div className="space-y-4 text-gray-700 overflow-y-auto max-h-[60vh]">
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold">مقدمة</h3>
-                <div className="text-sm text-gray-600">
-                  مرحباً بك في منصة El7lm. من خلال التسجيل في هذه المنصة، فإنك توافق على الشروط والأحكام التالية.
+        <div className="text-sm text-gray-700 max-h-[60vh] overflow-y-auto space-y-2">
+          <p>باستخدامك المنصة فأنت توافق على الالتزام بالقواعد والسياسات العامة، بما في ذلك سياسة الخصوصية وحماية البيانات.</p>
+          <p>يجب أن تكون المعلومات المدخلة صحيحة، ويحق للمنصة إيقاف أو تعليق الحساب عند إساءة الاستخدام أو مخالفة القوانين.</p>
+          <p>قد نقوم بإرسال إشعارات تتعلق بالأمان أو التحقق من الحساب. يمكنك التواصل معنا لأي استفسار.</p>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold">شروط التسجيل</h3>
-              <div className="text-sm text-gray-600">
-                • يجب أن تكون عمرك 18 عاماً أو أكثر<br/>
-                • يجب أن تقدم معلومات صحيحة ودقيقة<br/>
-                • يجب أن تحافظ على سرية كلمة المرور الخاصة بك<br/>
-                • يجب أن تستخدم المنصة لأغراض قانونية فقط
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold">سياسة الخصوصية</h3>
-              <div className="text-sm text-gray-600">
-                • نحن نحترم خصوصيتك ونحمي بياناتك الشخصية<br/>
-                • لن نشارك معلوماتك مع أي طرف ثالث دون موافقتك<br/>
-                • نستخدم التشفير لحماية بياناتك<br/>
-                • يمكنك طلب حذف حسابك في أي وقت
-                </div>
-              </div>
+        <div className="flex justify-end mt-4">
+          <button type="button" onClick={() => setShowTerms(false)} className="px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700">حسنًا</button>
             </div>
           </AlertDialogContent>
         </AlertDialog>
-
-      {/* OTP Verification Modal */}
-      {showPhoneVerification && pendingPhone && (
-        <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
-          <div className="p-8 mx-4 w-full max-w-lg bg-white rounded-xl">
-            <div className="mb-6 text-center">
-              <h2 className="mb-2 text-3xl font-bold text-gray-800">
-                التحقق من رقم الهاتف (معطل مؤقتاً)
-              </h2>
-              <p className="text-lg text-gray-600">
-                تم إنشاء الحساب بنجاح! التحقق من رقم الهاتف معطل مؤقتاً
-              </p>
-              <p className="mt-2 text-sm text-green-600">
-                ✅ الحساب جاهز للاستخدام مباشرة
-              </p>
-              
-              {/* زر تخطي التحقق للعملاء الجدد */}
-              <div className="p-3 mt-4 bg-green-50 rounded-lg border border-green-200">
-                <p className="mb-2 text-sm text-green-800">
-                  ✅ <strong>التحقق معطل مؤقتاً:</strong>
-                </p>
-                <button
-                  type="button"
-                  onClick={handleSkipOTP}
-                  disabled={loading}
-                  className="flex gap-2 justify-center items-center px-4 py-2 w-full font-semibold text-white bg-green-500 rounded-lg transition-colors duration-500 ease-out hover:bg-green-600 disabled:bg-green-300"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      جاري إنشاء الحساب...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4" />
-                      إنشاء الحساب مباشرة (بدون تحقق)
-                    </>
-                  )}
-                </button>
-                <p className="mt-2 text-xs text-green-700">
-                  ⚡ التحقق من رقم الهاتف معطل مؤقتاً
-                </p>
-              </div>
-            </div>
-
-      <UnifiedOTPVerification
-              phoneNumber={pendingPhone}
-        isOpen={showPhoneVerification}
-              onVerificationSuccess={(phoneNumber) => {
-                // إغلاق نافذة التحقق فوراً
-                setShowPhoneVerification(false);
-                setPendingPhone(null);
-                
-                // استرجاع OTP المدخل من المكون
-                const pendingDataStr = localStorage.getItem('pendingRegistration');
-                if (pendingDataStr) {
-                  const pendingData = JSON.parse(pendingDataStr);
-                  handleOTPVerification(pendingData.otp);
-                }
-              }}
-              onVerificationFailed={(error) => {
-                setError(error);
-              }}
-        onClose={handlePhoneVerificationClose}
-              title="التحقق من رقم الهاتف"
-              subtitle={`تم إرسال رمز التحقق إلى ${pendingPhone}`}
-              language={locale}
-              t={t}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

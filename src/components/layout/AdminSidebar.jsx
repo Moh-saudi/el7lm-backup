@@ -112,7 +112,8 @@ const AdminSidebar = ({ isOpen, adminData, onToggle, isMobile }) => {
       subItems: [
         { title: 'التقارير المالية', href: '/dashboard/admin/reports/financial', icon: DollarSign },
         { title: 'إحصائيات المستخدمين', href: '/dashboard/admin/reports/users', icon: Users },
-        { title: 'تقارير النشاط', href: '/dashboard/admin/reports/activity', icon: BarChart3 }
+        { title: 'تقارير النشاط', href: '/dashboard/admin/reports/activity', icon: BarChart3 },
+        { title: 'Clarity Analytics', href: '/dashboard/admin/clarity', icon: BarChart3 }
       ]
     },
     {

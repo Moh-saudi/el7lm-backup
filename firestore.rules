@@ -51,5 +51,50 @@ service cloud.firestore {
     match /auth/{document=**} {
       allow read, write: if request.auth != null;
     }
+
+    // =========================
+    // Organization Referrals System Rules
+    // =========================
+
+    // Organization referrals
+    match /organization_referrals/{referralId} {
+      // أي مستخدم مصادق يمكنه القراءة
+      allow read: if request.auth != null;
+      // الإنشاء والتحديث والحذف مسموح فقط لمالك المنظمة
+      allow create: if request.auth != null 
+        && request.auth.uid == request.resource.data.organizationId;
+      allow update, delete: if request.auth != null 
+        && request.auth.uid == resource.data.organizationId;
+    }
+
+    // Player join requests
+    match /player_join_requests/{requestId} {
+      // القراءة مسموحة للاعب صاحب الطلب أو المنظمة المستهدفة
+      allow read: if request.auth != null 
+        && (
+          request.auth.uid == resource.data.playerId ||
+          request.auth.uid == resource.data.organizationId
+        );
+      // الإنشاء مسموح للاعب فقط
+      allow create: if request.auth != null 
+        && request.auth.uid == request.resource.data.playerId;
+      // التحديث (المعالجة) مسموح للمنظمة فقط
+      allow update: if request.auth != null 
+        && request.auth.uid == resource.data.organizationId;
+    }
+
+    // Join request notifications (for organizations)
+    match /join_request_notifications/{notificationId} {
+      allow read, update: if request.auth != null 
+        && request.auth.uid == resource.data.organizationId;
+      allow create: if request.auth != null;
+    }
+
+    // Player notifications
+    match /player_notifications/{notificationId} {
+      allow read, update: if request.auth != null 
+        && request.auth.uid == resource.data.playerId;
+      allow create: if request.auth != null;
+    }
   }
 } 

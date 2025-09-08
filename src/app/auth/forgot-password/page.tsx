@@ -244,15 +244,16 @@ export default function ForgotPasswordPage() {
         country: formData.country,
         countryCode: formData.countryCode
       });
-      // أرسل طلب إلى API إرسال OTP (مثل صفحة التسجيل)
-      const otpResponse = await fetch('/api/notifications/smart-otp', {
+      // أرسل طلب إلى API إرسال OTP باستخدام BeOn
+      const otpResponse = await fetch('/api/notifications/sms/beon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: fullPhoneNumber,
+          phoneNumber: fullPhoneNumber,
           name: 'مستخدم',
-          country: formData.country,
-          countryCode: formData.countryCode
+          type: 'sms',
+          otp_length: 4,
+          lang: 'ar'
         })
       });
       const otpData = await otpResponse.json();

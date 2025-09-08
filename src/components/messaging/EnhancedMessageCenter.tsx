@@ -409,13 +409,36 @@ const EnhancedMessageCenter: React.FC = () => {
 
       // إرسال عبر SMS
       if ((sendVia === 'sms' || sendVia === 'all') && contact.phone) {
-        console.log('📱 إرسال SMS إلى:', contact.phone);
+        try {
+          const smsResponse = await fetch('/api/notifications/sms/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              phoneNumbers: [contact.phone],
+              message: message
+            })
+          });
+          
+          if (smsResponse.ok) {
+            console.log('✅ SMS أُرسل بنجاح إلى:', contact.phone);
+          } else {
+            console.error('❌ فشل في إرسال SMS:', await smsResponse.text());
+          }
+        } catch (error) {
+          console.error('❌ خطأ في إرسال SMS:', error);
+        }
       }
 
       // إرسال عبر WhatsApp
       if ((sendVia === 'whatsapp' || sendVia === 'all') && contact.phone) {
-        const whatsappUrl = `https://wa.me/${contact.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
+        try {
+          // استخدام WhatsApp Web API (فتح WhatsApp في المتصفح)
+          const whatsappUrl = `https://wa.me/${contact.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+          window.open(whatsappUrl, '_blank');
+          console.log('✅ WhatsApp Web أُفتح بنجاح لـ:', contact.phone);
+        } catch (error) {
+          console.error('❌ خطأ في فتح WhatsApp:', error);
+        }
       }
 
       // إرسال عبر البريد الإلكتروني

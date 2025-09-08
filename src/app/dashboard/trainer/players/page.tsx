@@ -39,9 +39,12 @@ import CreateLoginAccountButton from '@/components/ui/CreateLoginAccountButton';
 import LoginAccountStatus from '@/components/ui/LoginAccountStatus';
 import IndependentAccountCreator from '@/components/ui/IndependentAccountCreator';
 import { toast } from 'react-toastify';
+import { organizationReferralService } from '@/lib/organization/organization-referral-service';
+import { PlayerJoinRequest } from '@/types/organization-referral';
+import OrgReferralSummaryCard from '@/components/referrals/OrgReferralSummaryCard';
 
 export default function TrainerPlayersPage() {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,12 +58,15 @@ export default function TrainerPlayersPage() {
   const [playersPerPage, setPlayersPerPage] = useState(10);
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [joinRequests, setJoinRequests] = useState<PlayerJoinRequest[]>([]);
+  const [showJoinRequests, setShowJoinRequests] = useState(false);
 
   useEffect(() => {
     console.log('🔍 حالة المصادقة:', { user: user?.uid, loading: !user });
     if (user?.uid) {
       console.log('✅ المدرب مصادق - جاري تحميل اللاعبين...');
       loadPlayers();
+      loadJoinRequests();
     } else {
       console.log('⚠️ المدرب غير مصادق أو لا يزال يتم التحميل');
     }
@@ -72,16 +78,14 @@ export default function TrainerPlayersPage() {
 
       const baseQuery = query(
         collection(db, "players"),
-        where("trainer_id", "==", user?.uid),
-        where('isDeleted', '!=', true)
+        where("trainer_id", "==", user?.uid)
       );
       
       const snapshot = await getDocs(baseQuery);
       
-      const playersData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-      })) as Player[];
+      const playersData = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter((p: any) => !p.isDeleted) as Player[];
 
       // Manual sorting on the client-side
       playersData.sort((a, b) => {
@@ -101,6 +105,15 @@ export default function TrainerPlayersPage() {
     }
   };
 
+  const loadJoinRequests = async () => {
+    try {
+      const requests = await organizationReferralService.getOrganizationJoinRequests(user!.uid, 'pending');
+      setJoinRequests(requests);
+    } catch (error) {
+      console.error('خطأ في تحميل طلبات الانضمام:', error);
+    }
+  };
+
   // Filter, search, sort and paginate players
   const filteredPlayers = players.filter(player => {
     const playerName = player.full_name || (player as Player & { name?: string }).name || '';
@@ -115,6 +128,31 @@ export default function TrainerPlayersPage() {
     
     return matchesSearch && matchesFilter;
   });
+
+  const isProfileComplete = (p: Player) => {
+    const hasName = Boolean(p.full_name || (p as any).name);
+    const hasPhone = Boolean(p.phone);
+    const hasCountry = Boolean(p.country);
+    const hasPosition = Boolean(p.primary_position || (p as any).position);
+    const hasMedia = Boolean((p as any).videos?.length || (p as any).additional_images?.length);
+    return hasName && hasPhone && hasCountry && hasPosition && hasMedia;
+  };
+
+  const getProfileCompletion = (p: Player) => {
+    const checkpoints: boolean[] = [
+      Boolean(p.full_name || (p as any).name),
+      Boolean(p.phone),
+      Boolean(p.country),
+      Boolean(p.primary_position || (p as any).position),
+      Boolean(p.height),
+      Boolean(p.weight),
+      Boolean((p as any).videos && (p as any).videos.length > 0),
+      Boolean((p as any).additional_images && (p as any).additional_images.length > 0),
+      Boolean((p as any).birth_date)
+    ];
+    const done = checkpoints.filter(Boolean).length;
+    return Math.round((done / checkpoints.length) * 100);
+  };
 
   // Sort players
   const sortedPlayers = [...filteredPlayers].sort((a, b) => {
@@ -350,6 +388,8 @@ export default function TrainerPlayersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white" dir="rtl">
       <main className="container px-4 py-8 mx-auto">
+        {/* Referrals summary card */}
+        <OrgReferralSummaryCard accountType="trainer" />
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -468,9 +508,13 @@ export default function TrainerPlayersPage() {
           </div>
         </Card>
 
-        {/* Players Table */}
+        {/* Players Table - Joined via referral */}
         {viewMode === 'table' && (
+          <>
           <Card className="overflow-hidden">
+            <div className="p-4 border-b">
+              <h3 className="font-bold text-gray-800">اللاعبون المنضمون عبر كود الإحالة ({currentPlayers.filter(p => (p as any).joinedViaReferral).length})</h3>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
@@ -481,25 +525,22 @@ export default function TrainerPlayersPage() {
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       معلومات الاتصال
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      الموقع
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      العمر
-                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الموقع</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العمر</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       حالة الاشتراك
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       التواريخ
                     </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الانضمام عبر كود</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       الإجراءات
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentPlayers.map((player) => (
+                  {currentPlayers.filter(p => (p as any).joinedViaReferral).map((player) => (
                     <tr key={player.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -531,6 +572,14 @@ export default function TrainerPlayersPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{player.email || 'غير محدد'}</div>
                         <div className="text-sm text-gray-500">{player.phone || 'غير محدد'}</div>
+                        <div className="mt-2">{(() => { const pct = getProfileCompletion(player); return (
+                          <div>
+                            <div className="flex items-center justify-between text-[11px] text-gray-500"><span>اكتمال الملف</span><span>{pct}%</span></div>
+                            <div className="w-32 h-1.5 bg-gray-200 rounded">
+                              <div className={`h-1.5 rounded ${pct>=80?'bg-emerald-500':pct>=50?'bg-amber-500':'bg-red-500'}`} style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        ); })()}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
@@ -570,6 +619,15 @@ export default function TrainerPlayersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="text-xs text-gray-700">
+                          <div>الكود: {player.referralCodeUsed || '-'}</div>
+                          <div>التاريخ: {formatDate((player as any).organizationJoinedAt)}</div>
+                          {(player as any).organizationApprovedBy?.userName && (
+                            <div>الموافق: {(player as any).organizationApprovedBy.userName}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center gap-2">
                           <Link href={`/dashboard/trainer/players/${player.id}`}>
                             <Button variant="outline" size="sm">
@@ -581,12 +639,20 @@ export default function TrainerPlayersPage() {
                               <Edit className="w-4 h-4" />
                             </Button>
                           </Link>
-                          <SendMessageButton
-                            recipientId={player.id}
-                            recipientName={player.full_name || player.name || ''}
-                            variant="outline"
-                            size="sm"
-                          />
+                          {player.id && (
+                            <SendMessageButton
+                              user={user}
+                              userData={userData}
+                              getUserDisplayName={() => (userData as any)?.full_name || (userData as any)?.name || user?.email || 'مستخدم'}
+                              targetUserId={player.id}
+                              targetUserName={player.full_name || player.name || ''}
+                              targetUserType="player"
+                              buttonText="رسالة"
+                              buttonVariant="outline"
+                              buttonSize="sm"
+                              redirectToMessages={true}
+                            />
+                          )}
                           
                           <CreateLoginAccountButton
                             playerId={player.id}
@@ -637,6 +703,66 @@ export default function TrainerPlayersPage() {
               </table>
             </div>
           </Card>
+          {/* Players added manually by trainer */}
+          <Card className="overflow-hidden mt-6">
+            <div className="p-4 border-b">
+              <h3 className="font-bold text-gray-800">اللاعبون المضافون بواسطة المدرب ({currentPlayers.filter(p => !(p as any).joinedViaReferral).length})</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اللاعب</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">معلومات الاتصال</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الموقع</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العمر</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">حالة الاشتراك</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التواريخ</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentPlayers.filter(p => !(p as any).joinedViaReferral).map((player) => (
+                    <tr key={player.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            {player.profile_image ? (
+                              <Image src={player.profile_image} alt={player.full_name || player.name || ''} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center"><User className="w-5 h-5 text-gray-600" /></div>
+                            )}
+                          </div>
+                          <div className="mr-4">
+                            <div className="text-sm font-medium text-gray-900">{player.full_name || player.name || 'غير محدد'}</div>
+                            <div className="text-sm text-gray-500">{player.nationality || 'غير محدد'}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{player.email || 'غير محدد'}</div>
+                        <div className="text-sm text-gray-500">{player.phone || 'غير محدد'}</div>
+                        <div className="mt-2">{(() => { const pct = getProfileCompletion(player); return (
+                          <div>
+                            <div className="flex items-center justify-between text-[11px] text-gray-500"><span>اكتمال الملف</span><span>{pct}%</span></div>
+                            <div className="w-32 h-1.5 bg-gray-200 rounded">
+                              <div className={`h-1.5 rounded ${pct>=80?'bg-emerald-500':pct>=50?'bg-amber-500':'bg-red-500'}`} style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        ); })()}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{player.primary_position || player.position || 'غير محدد'}</div>{player.secondary_position && (<div className="text-sm text-gray-500">{player.secondary_position}</div>)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{calculateAge(player.birth_date) || 'غير محدد'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{getSubscriptionBadge(player.subscription_status || 'inactive', player.subscription_end)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap"><div className="text-xs text-gray-600"><div className="flex gap-1 items-center mb-1"><Plus className="w-3 h-3 text-green-600" /><span className="font-medium">إضافة:</span></div><div className="mb-2">{formatDate(player.createdAt || player.created_at)}<div className="text-gray-400">{getTimeAgo(player.createdAt || player.created_at)}</div></div><div className="flex gap-1 items-center mb-1"><Edit className="w-3 h-3 text-blue-600" /><span className="font-medium">تحديث:</span></div><div>{formatDate(player.updated_at)}<div className="text-gray-400">{getTimeAgo(player.updated_at)}</div></div></div></td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium"><div className="flex items-center gap-2"><Link href={`/dashboard/trainer/players/${player.id}`}><Button variant="outline" size="sm"><Eye className="w-4 h-4" /></Button></Link><Link href={`/dashboard/trainer/players/${player.id}/edit`}><Button variant="outline" size="sm"><Edit className="w-4 h-4" /></Button></Link>{player.id && (<SendMessageButton user={user} userData={userData} getUserDisplayName={() => (userData as any)?.full_name || (userData as any)?.name || user?.email || 'مستخدم'} targetUserId={player.id} targetUserName={player.full_name || player.name || ''} targetUserType="player" buttonText="رسالة" buttonVariant="outline" buttonSize="sm" redirectToMessages={true} />)}<Button variant="outline" size="sm" onClick={() => handleDeletePlayer(player)} className="text-red-600 hover:text-red-800"><Trash2 className="w-4 h-4" /></Button></div></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          </>
         )}
 
         {/* Players Cards View */}
@@ -666,6 +792,26 @@ export default function TrainerPlayersPage() {
                         {player.full_name || player.name || 'غير محدد'}
                       </h3>
                       <p className="text-sm text-gray-500">{player.nationality || 'غير محدد'}</p>
+                      {player.joinedViaReferral && (
+                        <div className="mt-1 space-y-1">
+                          <div className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                            انضم عبر كود
+                            {player.referralCodeUsed && <span className="font-mono">({player.referralCodeUsed})</span>}
+                          </div>
+                          <div className="text-[11px] text-gray-500">
+                            تاريخ الانضمام: {formatDate((player as any).organizationJoinedAt)}
+                            {(player as any).organizationApprovedBy?.userName && (
+                              <span className="ml-2">— بواسطة: {(player as any).organizationApprovedBy.userName}</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {player.joinedViaReferral && (
+                        <div className="mt-1 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                          انضم عبر كود
+                          {player.referralCodeUsed && <span className="font-mono">({player.referralCodeUsed})</span>}
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -677,6 +823,13 @@ export default function TrainerPlayersPage() {
                     <div className="flex items-center text-sm text-gray-600">
                       <Phone className="w-4 h-4 ml-2" />
                       {player.phone || 'غير محدد'}
+                    </div>
+                    <div className="pt-1">
+                      {isProfileComplete(player) ? (
+                        <Badge className="text-emerald-700 bg-emerald-100">ملف مكتمل</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-amber-700 border-amber-300">بحاجة لاستكمال</Badge>
+                      )}
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <MapPin className="w-4 h-4 ml-2" />
@@ -710,12 +863,20 @@ export default function TrainerPlayersPage() {
                       </Link>
                     </div>
                     <div className="flex items-center gap-2">
-                      <SendMessageButton
-                        recipientId={player.id}
-                        recipientName={player.full_name || player.name || ''}
-                        variant="outline"
-                        size="sm"
-                      />
+                      {player.id && (
+                        <SendMessageButton
+                          user={user}
+                          userData={userData}
+                          getUserDisplayName={() => (userData as any)?.full_name || (userData as any)?.name || user?.email || 'مستخدم'}
+                          targetUserId={player.id}
+                          targetUserName={player.full_name || player.name || ''}
+                          targetUserType="player"
+                          buttonText="رسالة"
+                          buttonVariant="outline"
+                          buttonSize="sm"
+                          redirectToMessages={true}
+                        />
+                      )}
                       <Button
                         variant="outline"
                         size="sm"

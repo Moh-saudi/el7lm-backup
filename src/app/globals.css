@@ -269,7 +269,40 @@ html, body, * {
 }
 
 /* ==============================================
-   3. ESSENTIAL ANIMATIONS
+   3. ACCESSIBILITY & HIGH CONTRAST FIXES
+   ============================================== */
+
+/* إصلاح تحذير -ms-high-contrast */
+@media (prefers-contrast: high) {
+  /* استخدام Forced Colors Mode بدلاً من -ms-high-contrast */
+  * {
+    forced-color-adjust: auto;
+  }
+  
+  /* تحسين الرؤية في الوضع عالي التباين */
+  .high-contrast {
+    border: 2px solid;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
+
+/* دعم Forced Colors Mode */
+@media (forced-colors: active) {
+  * {
+    forced-color-adjust: auto;
+  }
+  
+  /* تحسين الألوان في الوضع المجبر */
+  .forced-colors {
+    background: Canvas;
+    color: CanvasText;
+    border-color: ButtonText;
+  }
+}
+
+/* ==============================================
+   4. ESSENTIAL ANIMATIONS
    ============================================== */
 
 @keyframes fade-in {

@@ -53,6 +53,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import JoinRequestNotifications from '@/components/notifications/JoinRequestNotifications';
 
 interface UnifiedSidebarProps {
   isOpen: boolean;
@@ -525,6 +526,14 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
               href: `/dashboard/admin/reports`,
               color: 'text-slate-600',
               bgColor: 'bg-slate-50'
+            },
+            {
+              id: 'clarity',
+              label: 'Clarity Analytics',
+              icon: BarChart3,
+              href: `/dashboard/admin/clarity`,
+              color: 'text-indigo-600',
+              bgColor: 'bg-indigo-50'
             }
           ]
         },
@@ -998,6 +1007,9 @@ const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
             </div>
             
             <div className="flex items-center gap-2">
+              {(userData?.accountType && userData.accountType !== 'player') && (
+                <JoinRequestNotifications />
+              )}
               {!isMobile && screenSize !== 'mobile' && (
                 <Button
                   variant="ghost"

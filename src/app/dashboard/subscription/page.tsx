@@ -290,6 +290,7 @@ function SubscriptionStatusContent() {
   const [currentCurrency, setCurrentCurrency] = useState('USD');
   const [playerRewards, setPlayerRewards] = useState<PlayerRewards | null>(null);
   const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
+  const [showReceiptDialog, setShowReceiptDialog] = useState(false);
 
 
   useEffect(() => {
@@ -947,8 +948,135 @@ function SubscriptionStatusContent() {
   };
 
   const handleDownloadInvoice = () => {
-    // نفس منطق الطباعة ولكن للتحميل
-    handlePrintInvoice();
+    // إنشاء الفاتورة كـ HTML للتحميل
+    const packageInfo = getPackageInfo(subscription?.selectedPackage || subscription?.plan_name || '');
+    const features = packageInfo?.features || [];
+    const bonusFeatures = packageInfo?.bonusFeatures || [];
+
+    const invoiceContent = `
+      <!DOCTYPE html>
+      <html dir="rtl">
+        <head>
+          <title>فاتورة اشتراك - ${subscription?.plan_name}</title>
+          <style>
+            body { font-family: 'Cairo', Arial, sans-serif; padding: 0; margin: 0; background: #fff; }
+            .invoice-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 32px 24px; }
+            .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 16px; margin-bottom: 24px; }
+            .logo { height: 64px; }
+            .company-info { text-align: left; font-size: 14px; color: #444; }
+            .invoice-title { font-size: 2rem; color: #1a237e; font-weight: bold; letter-spacing: 1px; }
+            .section-title { color: #1976d2; font-size: 1.1rem; margin-bottom: 8px; font-weight: bold; }
+            .details-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+            .details-table th, .details-table td { border: 1px solid #e0e0e0; padding: 10px 8px; text-align: right; font-size: 15px; }
+            .details-table th { background: #f0f4fa; color: #1a237e; }
+            .details-table td { background: #fafbfc; }
+            .summary { margin: 24px 0; font-size: 1.1rem; }
+            .summary strong { color: #1976d2; }
+            .footer { border-top: 2px solid #eee; padding-top: 16px; margin-top: 24px; text-align: center; color: #555; font-size: 15px; }
+            .footer .icons { font-size: 1.5rem; margin-bottom: 8px; }
+            .customer-care { background: #e3f2fd; color: #1976d2; border-radius: 8px; padding: 12px; margin: 18px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; justify-content: center; }
+            .thankyou { color: #388e3c; font-size: 1.2rem; margin: 18px 0 0 0; font-weight: bold; }
+            .package-features { background: #f8f9fa; border-radius: 8px; padding: 16px; margin: 16px 0; }
+            .feature-list { list-style: none; padding: 0; margin: 8px 0; }
+            .feature-list li { padding: 4px 0; color: #555; }
+            .feature-list li:before { content: "✓ "; color: #4caf50; font-weight: bold; }
+            .bonus-features { background: #fff3e0; border-radius: 8px; padding: 16px; margin: 16px 0; }
+            .bonus-features h4 { color: #f57c00; margin-bottom: 8px; }
+            @media print { body { background: #fff; } }
+          </style>
+          <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+        </head>
+        <body>
+          <div class="invoice-container">
+            <div class="header">
+              <img src="/el7lm-logo.png" alt="Logo" class="logo" />
+              <div class="company-info">
+                <strong>منصة الحلم</strong><br>
+                📧 info@el7lm.com<br>
+                📱 +20 101 779 9580<br>
+                🌐 www.el7lm.com
+              </div>
+            </div>
+            
+            <div class="invoice-title">فاتورة اشتراك <span style="font-size:1.3em;">🧾</span></div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 1.1rem;">
+              <b>رقم الفاتورة:</b> ${subscription?.invoice_number || ''} &nbsp; | &nbsp;
+              <b>تاريخ الإصدار:</b> ${new Date().toLocaleDateString('ar-EG')} &nbsp; | &nbsp;
+              <b>حالة الاشتراك:</b> ${getStatusText(subscription?.status || '')}
+            </div>
+
+            <div class="section-title">📋 تفاصيل الاشتراك</div>
+            <table class="details-table">
+              <tr><th>اسم الباقة</th><td>${subscription?.plan_name || ''}</td></tr>
+              <tr><th>المبلغ المدفوع</th><td>${subscription?.amount || 0} ${subscription?.currencySymbol || ''}</td></tr>
+              <tr><th>تاريخ التفعيل</th><td>${subscription?.activated_at ? new Date(subscription.activated_at.seconds * 1000).toLocaleDateString('ar-EG') : 'غير محدد'}</td></tr>
+              <tr><th>تاريخ الانتهاء</th><td>${subscription?.expires_at ? new Date(subscription.expires_at.seconds * 1000).toLocaleDateString('ar-EG') : 'غير محدد'}</td></tr>
+              <tr><th>طريقة الدفع</th><td>${subscription?.payment_method || ''}</td></tr>
+              <tr><th>رقم العملية</th><td>${subscription?.transaction_id || ''}</td></tr>
+            </table>
+
+            <div class="section-title">👤 معلومات العميل</div>
+            <table class="details-table">
+              <tr><th>الاسم</th><td>${subscription?.customer_name || ''}</td></tr>
+              <tr><th>البريد الإلكتروني</th><td>${subscription?.customer_email || ''}</td></tr>
+              <tr><th>رقم الهاتف</th><td>${subscription?.customer_phone || '-'}</td></tr>
+              <tr><th>نوع الحساب</th><td>${subscription?.accountType || 'لاعب'}</td></tr>
+            </table>
+
+            ${features.length > 0 ? `
+            <div class="package-features">
+              <h4>🎯 مميزات الباقة:</h4>
+              <ul class="feature-list">
+                ${features.map(feature => `<li>${feature}</li>`).join('')}
+              </ul>
+            </div>
+            ` : ''}
+
+            ${bonusFeatures.length > 0 ? `
+            <div class="bonus-features">
+              <h4>🎁 مميزات إضافية:</h4>
+              <ul class="feature-list">
+                ${bonusFeatures.map(feature => `<li>${feature}</li>`).join('')}
+              </ul>
+            </div>
+            ` : ''}
+
+            <div class="summary">
+              <strong>إجمالي المبلغ:</strong> ${subscription?.amount || 0} ${subscription?.currencySymbol || ''}
+            </div>
+
+            <div class="customer-care">
+              🎧 خدمة العملاء متاحة 24/7 | 📧 info@el7lm.com | 📱 +20 101 779 9580
+            </div>
+
+            <div class="footer">
+              <div class="icons">🌟 منصة الحلم - حيث تتحقق الأحلام 🌟</div>
+              <div style="margin-top:8px; font-size:13px; color:#888;">تم إصدار هذه الفاتورة إلكترونيًا ولا تحتاج إلى توقيع.</div>
+            </div>
+
+            <div class="thankyou">شكرًا لاختيارك منصة الحلم! 🎉</div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // إنشاء blob من HTML
+    const blob = new Blob([invoiceContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    
+    // إنشاء رابط التحميل
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `فاتورة-اشتراك-${subscription?.plan_name || 'subscription'}-${new Date().toISOString().split('T')[0]}.html`;
+    
+    // إضافة الرابط للصفحة وتنفيذ التحميل
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // تنظيف URL
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -1183,6 +1311,42 @@ function SubscriptionStatusContent() {
               </div>
             </div>
           </div>
+
+          {/* أزرار الإجراءات */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleDownloadInvoice}
+                className="flex-1 flex items-center justify-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                تحميل الفاتورة PDF
+              </button>
+              
+              <button
+                onClick={handlePrintInvoice}
+                disabled={printing}
+                className="flex-1 flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                {printing ? (
+                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Printer className="w-4 h-4 mr-2" />
+                )}
+                {printing ? 'جاري الطباعة...' : 'طباعة الفاتورة'}
+              </button>
+              
+              {subscription?.receipt_url && (
+                <button
+                  onClick={() => setShowReceiptDialog(true)}
+                  className="flex-1 flex items-center justify-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  <FileImage className="w-4 h-4 mr-2" />
+                  عرض الإيصال
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* قسم نقاط الإحالة والحوافز */}
@@ -1318,6 +1482,16 @@ function SubscriptionStatusContent() {
             <Download className="w-5 h-5 mr-2" />
             تحميل الفاتورة
           </button>
+          
+          {subscription?.receipt_url && (
+            <button
+              onClick={() => setShowReceiptDialog(true)}
+              className="flex-1 flex items-center justify-center bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700"
+            >
+              <FileImage className="w-5 h-5 mr-2" />
+              عرض الإيصال
+            </button>
+          )}
         </div>
 
         {/* رابط للدفع المجمع */}
@@ -1330,6 +1504,56 @@ function SubscriptionStatusContent() {
             تحديث الاشتراك أو الدفع الجماعي
           </Link>
         </div>
+
+        {/* موديول عرض الإيصال */}
+        {showReceiptDialog && subscription?.receipt_url && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h3 className="text-xl font-bold text-gray-900">إيصال الدفع</h3>
+                <button
+                  onClick={() => setShowReceiptDialog(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <div className="text-center mb-4">
+                  <img
+                    src={subscription.receipt_url}
+                    alt="إيصال الدفع"
+                    className="max-w-full h-auto mx-auto rounded-lg shadow-lg max-h-[70vh]"
+                  />
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                  <button
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = subscription.receipt_url;
+                      link.download = `receipt-${subscription.invoice_number || 'payment'}.jpg`;
+                      link.click();
+                    }}
+                    className="flex-1 flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+                  >
+                    <Download className="w-5 h-5 mr-2" />
+                    تحميل الإيصال
+                  </button>
+                  
+                  <button
+                    onClick={() => window.open(subscription.receipt_url, '_blank')}
+                    className="flex-1 flex items-center justify-center bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700"
+                  >
+                    <ExternalLink className="w-5 h-5 mr-2" />
+                    فتح في تبويب جديد
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

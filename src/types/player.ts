@@ -155,6 +155,17 @@ export interface Player extends BaseEntity, PlayerFormData {
   organizationId?: string;
   organizationType?: string;
   organizationName?: string;
+  // حقول جديدة لربط المنظمات
+  joinRequestId?: string;
+  joinRequestStatus?: 'pending' | 'approved' | 'rejected';
+  joinedViaReferral?: boolean;
+  referralCodeUsed?: string;
+  organizationJoinedAt?: DateOrTimestamp;
+  organizationApprovedBy?: {
+    userId: string;
+    userName?: string;
+    approvedAt: DateOrTimestamp;
+  };
   addedBy?: {
     accountType: string;
     accountId: string;

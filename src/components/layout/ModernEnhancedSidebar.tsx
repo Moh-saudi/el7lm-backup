@@ -289,6 +289,7 @@ const ModernEnhancedSidebar: React.FC<ModernEnhancedSidebarProps> = ({
         { id: 'convert-players', label: 'تحويل اللاعبين التابعين', icon: User, href: `/dashboard/admin/convert-dependent-players`, color: 'text-orange-600', bgColor: 'bg-orange-50' },
         { id: 'employees', label: 'الموظفين', icon: User, href: `/dashboard/admin/employees`, color: 'text-blue-600', bgColor: 'bg-blue-50' },
         { id: 'reports', label: 'التقارير', icon: FileText, href: `/dashboard/admin/reports`, color: 'text-orange-600', bgColor: 'bg-orange-50' },
+        { id: 'clarity', label: 'Clarity Analytics', icon: BarChart3, href: `/dashboard/admin/clarity`, color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
         { id: 'payments', label: 'المدفوعات', icon: Target, href: `/dashboard/admin/payments`, color: 'text-green-600', bgColor: 'bg-green-50' },
         { id: 'subscriptions', label: 'الاشتراكات', icon: Star, href: `/dashboard/admin/subscriptions`, color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
         { id: 'support', label: 'الدعم الفني', icon: Shield, href: `/dashboard/admin/support`, color: 'text-red-600', bgColor: 'bg-red-50' },

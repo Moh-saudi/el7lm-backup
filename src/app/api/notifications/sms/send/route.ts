@@ -99,13 +99,19 @@ export async function POST(request: NextRequest) {
     
     // إرسال عبر SMS باستخدام API الصحيح
     const apiStartTime = Date.now();
+    
+    // استخدام FormData مثل OTP API
+    const formData = new FormData();
+    formData.append('phoneNumber', formattedPhoneNumber);
+    formData.append('message', message);
+    formData.append('type', 'sms');
+    
     const response = await fetch(`${BEON_CONFIG.ENDPOINTS.BASE_URL}${SMS_ENDPOINT}`, {
       method: 'POST',
-      headers: createBeOnHeaders(BEON_TOKEN),
-      body: JSON.stringify({
-        phoneNumbers: [formattedPhoneNumber], // ✅ مصفوفة أرقام الهاتف
-        message: message // ✅ الرسالة
-      })
+      headers: {
+        'beon-token': BEON_TOKEN
+      },
+      body: formData
     });
 
     const apiResponseTime = Date.now() - apiStartTime;
