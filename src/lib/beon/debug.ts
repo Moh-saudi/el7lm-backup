@@ -18,9 +18,9 @@ export function debugBeOnAPI() {
   // فحص التكوين
   const config = {
     baseUrl: process.env.BEON_BASE_URL || 'https://v3.api.beon.chat',
-    smsEndpoint: '/api/v3/messages/sms',
-    whatsappEndpoint: '/api/v3/messages/whatsapp',
-    otpEndpoint: '/api/v3/messages/otp'
+    smsEndpoint: '/api/send/message/sms',
+    whatsappEndpoint: '/api/send/message/whatsapp',
+    otpEndpoint: '/api/send/message/otp'
   };
   
   console.log('⚙️ التكوين:', config);
@@ -56,7 +56,7 @@ export async function testBeOnConnection() {
     }
     
     // اختبار الاتصال الأساسي
-    const response = await fetch(`${baseUrl}/api/v3/messages/sms`, {
+    const response = await fetch(`${baseUrl}/api/send/message/sms`, {
       method: 'POST',
       headers: {
         'beon-token': token,

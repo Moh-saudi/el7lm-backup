@@ -20,20 +20,20 @@ export const BEON_CONFIG = {
   ENDPOINTS: {
     BASE_URL: process.env.BEON_BASE_URL || 'https://v3.api.beon.chat',
     
-    // SMS Regular - للرسائل العادية
-    SMS: '/api/v3/messages/sms',
+    // SMS Regular - للرسائل العادية (endpoint صحيح)
+    SMS: '/api/send/message/sms',
     
     // SMS Template - للرسائل القوالب
-    SMS_TEMPLATE: '/api/v3/messages/sms/template',
+    SMS_TEMPLATE: '/api/send/message/sms/template',
     
     // SMS Bulk - للرسائل الجماعية
-    SMS_BULK: '/api/v3/messages/sms/bulk',
+    SMS_BULK: '/api/send/message/sms/bulk',
     
     // WhatsApp OTP
-    WHATSAPP_OTP: '/api/v3/messages/otp',
+    WHATSAPP_OTP: '/api/send/message/otp',
     
     // WhatsApp
-    WHATSAPP: '/api/v3/messages/whatsapp'
+    WHATSAPP: '/api/send/message/whatsapp'
   },
   
   // إعدادات افتراضية
