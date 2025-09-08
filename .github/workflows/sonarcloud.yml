@@ -54,12 +54,14 @@ jobs:
           SONAR_TOKEN: dd96c799cdda96a9ffa25f4365293c996dafd7fb
         with:
           args: >
-            -Dsonar.projectKey=dd96c799cdda96a9ffa25f4365293c996dafd7fb
+            -Dsonar.projectKey=el7lm-platform
             -Dsonar.organization=moh-saudi
             -Dsonar.sources=src
             -Dsonar.tests=__tests__
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.typescript.tsconfigPath=tsconfig.json
             -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.projectName=El7lm Platform
+            -Dsonar.projectVersion=1.0.0
 
 
