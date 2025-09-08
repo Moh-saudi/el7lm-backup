@@ -11,7 +11,7 @@ export const BEON_CONFIG = {
     // SMS Bulk - للرسائل الجماعية
     SMS_BULK: process.env.BEON_BULK_SMS_TOKEN || 'Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv',
     // WhatsApp OTP
-    WHATSAPP_OTP: process.env.BEON_WHATSAPP_OTP_TOKEN || process.env.BEON_OTP_TOKEN || 'yK1zYZRgjvuVC5wJcmkMwL0zFsRi9BhytEYPXgnzbNCyPFkaJBp9ngjmO6q4',
+    WHATSAPP_OTP: process.env.BEON_WHATSAPP_OTP_TOKEN || process.env.BEON_OTP_TOKEN || 'SPb4sbemr5bwb7sjzCqTcL',
     // WhatsApp
     WHATSAPP: process.env.BEON_WHATSAPP_TOKEN || 'Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv'
   },
