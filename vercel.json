@@ -1,39 +1,22 @@
 {
-  "version": 2,
-  "buildCommand": "next build",
-  "devCommand": "next dev",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "regions": ["iad1"],
   "env": {
+    "BEON_API_TOKEN": "Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv",
+    "BEON_BASE_URL": "https://v3.api.beon.chat",
+    "BEON_SMS_TOKEN": "Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv",
+    "BEON_WHATSAPP_TOKEN": "vSCuMzZwLjDxzR882YphwEgW",
+    "BEON_OTP_TOKEN": "SPb4sbemr5bwb7sjzCqTcL",
+    "BEON_SENDER_NAME": "El7lm",
+    "ENABLE_SMS_SIMULATION": "false"
   },
-  "functions": {
-    "src/app/api/geidea/**/*.ts": {
-      "maxDuration": 30
-    },
-    "src/app/api/update-currency-rates/**/*.ts": {
-      "maxDuration": 30
+  "build": {
+    "env": {
+      "BEON_API_TOKEN": "Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv",
+      "BEON_BASE_URL": "https://v3.api.beon.chat",
+      "BEON_SMS_TOKEN": "Yt3A3RwMQHx49trsz1EMgSKP8qOD0CSVJXdJxy6IqNNtcYblsYWtfVAtaJpv",
+      "BEON_WHATSAPP_TOKEN": "vSCuMzZwLjDxzR882YphwEgW",
+      "BEON_OTP_TOKEN": "SPb4sbemr5bwb7sjzCqTcL",
+      "BEON_SENDER_NAME": "El7lm",
+      "ENABLE_SMS_SIMULATION": "false"
     }
-  },
-  "headers": [
-    {
-      "source": "/.well-known/apple-developer-merchantid-domain-association",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400"
-        }
-      ]
-    }
-  ],
-  "crons": [
-    {
-      "path": "/api/update-currency-rates",
-      "schedule": "0 8 * * *"
-    }
-  ]
+  }
 }

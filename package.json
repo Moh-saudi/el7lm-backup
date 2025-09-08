@@ -14,7 +14,9 @@
     "test:watch": "jest --watch",
     "clean": "rm -rf .next out dist",
     "clean:all": "rm -rf .next out dist node_modules package-lock.json && npm install",
-    "build:check": "npm run build && ls -la .next/standalone/"
+    "build:check": "npm run build && ls -la .next/standalone/",
+    "vercel-build": "next build",
+    "vercel-dev": "next dev"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.9.1",
