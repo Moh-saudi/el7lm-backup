@@ -51,10 +51,10 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@v2.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: dd96c799cdda96a9ffa25f4365293c996dafd7fb
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=el7lm-platform
+            -Dsonar.projectKey=Moh-saudi_el7lm-backup
             -Dsonar.organization=moh-saudi
             -Dsonar.sources=src
             -Dsonar.tests=__tests__
