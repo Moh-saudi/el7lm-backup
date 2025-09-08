@@ -35,8 +35,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=${{ secrets.SONAR_ORG }}
+            -Dsonar.projectKey=dd96c799cdda96a9ffa25f4365293c996dafd7fb
+            -Dsonar.organization=moh-saudi
             -Dsonar.sources=src
             -Dsonar.tests=__tests__
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
