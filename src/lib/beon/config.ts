@@ -46,7 +46,7 @@ export const BEON_CONFIG = {
   
   // Headers المطلوبة حسب الوثائق الرسمية V3
   HEADERS: {
-    CONTENT_TYPE: 'application/json',
+    CONTENT_TYPE: 'multipart/form-data', // ✅ Content-Type الصحيح
     TOKEN_HEADER: 'beon-token', // ✅ Header الصحيح حسب الوثائق V3
     AUTHORIZATION_HEADER: 'Authorization'
   }
@@ -91,8 +91,8 @@ export function getBeOnEndpoint(serviceType: 'sms' | 'template' | 'bulk' | 'what
 // دالة إنشاء Headers
 export function createBeOnHeaders(token: string): Record<string, string> {
   return {
-    'Content-Type': BEON_CONFIG.HEADERS.CONTENT_TYPE,
     'beon-token': token // ✅ Header الصحيح حسب الوثائق V3
+    // لا نضع Content-Type لأن FormData يضعه تلقائياً
   };
 }
 
