@@ -21,19 +21,19 @@ export const BEON_CONFIG = {
     BASE_URL: process.env.BEON_BASE_URL || 'https://v3.api.beon.chat',
     
     // SMS Regular - للرسائل العادية (endpoint صحيح)
-    SMS: '/api/send/message/sms',
+    SMS: '/api/v3/messages/sms',
     
     // SMS Template - للرسائل القوالب
-    SMS_TEMPLATE: '/api/send/message/sms/template',
+    SMS_TEMPLATE: '/api/v3/messages/sms/template',
     
     // SMS Bulk - للرسائل الجماعية
-    SMS_BULK: '/api/send/message/sms/bulk',
+    SMS_BULK: '/api/v3/messages/sms/bulk',
     
     // WhatsApp OTP
-    WHATSAPP_OTP: '/api/send/message/otp',
+    WHATSAPP_OTP: '/api/v3/messages/otp',
     
     // WhatsApp
-    WHATSAPP: '/api/send/message/whatsapp'
+    WHATSAPP: '/api/v3/messages/whatsapp'
   },
   
   // إعدادات افتراضية
